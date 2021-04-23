@@ -1,0 +1,21 @@
+Exercise 1-12. Write a program that prints its input one word per line
+Answer:
+1. find a word
+2. print it postfix a newline
+
+
+while ((c = getchar()) != EOF) {
+	if (c != ' ' && c != '\n' && c != '\t') {
+		putchar(c);
+		while ((c = getchar()) != ' ' && c != '\n' && c != '\t') 
+			putchar(c);
+		putchar('\n');
+	}
+}
+
+Test:
+1. \n \t niubi sasa\n 
+Result:
+niubi
+sasa
+

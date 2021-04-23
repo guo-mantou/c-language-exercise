@@ -1,0 +1,21 @@
+Exercise 1-9. Write a program to copy its input to its output, replacing each string 
+of one or more blanks by a single blank.
+
+Anwser:
+1. Find such a string
+2. Replace it with a single blank
+
+while ((c = getchar()) != EOF) {
+	if (blank)
+		putchar(c);	/* print blank */
+		while ((c = getchar()) == ' ')
+			;
+		putchar(c); /* print first non-blank character */
+		continue;
+	putchar(c);
+}
+
+Test:
+1   2
+Result:
+1 2

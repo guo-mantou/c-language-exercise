@@ -1,0 +1,24 @@
+Exercise 1-10. Write a program to copy its input to its output, replacing each tab
+by \t, each backspace by \b, and each backslash by \\. This makes tabs and backspaces
+visible in an unambiguous way;
+
+Anwser:
+while ((c = getchar()) != EOF) {
+	if (tab)
+		printf("\\t");
+	else if (backspace)
+		putchar('\b');
+	else if (backslash)
+		printf("\\\\");
+	else
+		putchar(c);
+}
+
+Problem: Doesn't know how to type a backspace which can be detected by 
+the program and replaced by /b
+
+Test:
+12	\ 12
+Result:
+12\t\\ 12
+
