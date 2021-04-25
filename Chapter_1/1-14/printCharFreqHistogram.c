@@ -16,9 +16,9 @@ int getMaxElem(int a[], int length);
 int main()
 {
     char ic[MAX] = "";    /* store input characters */
-    int freq[MAX];    /* store the frequencies of input characters */
-    int maxFreq;    /* store the max of the frequencies */
-    int count;    /* store the count of input characters */
+    int freq[MAX];        /* store the frequencies of input characters */
+    int maxFreq;          /* store the max of the frequencies */
+    int count;            /* store the count of input characters */
 
     if ((count = readchars(ic, freq, MAX)) == -1) {
         printf("Too many characters!!\n");
