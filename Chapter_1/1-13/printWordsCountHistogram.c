@@ -75,9 +75,6 @@ void printHistogram(char *wordsptr[], int *length, int words_count)
     int i, j, max_words_length;
     char horizontal_matrix[MAX][MAX] = {0};
     char vertical_matrix[MAX][MAX] = {0};
-    char symbol;
-
-    symbol = '|';
 
     max_words_length = getMaxElem(length, words_count);
 
@@ -91,11 +88,11 @@ void printHistogram(char *wordsptr[], int *length, int words_count)
     matrixMagic(vertical_matrix, horizontal_matrix, words_count, max_words_length);
 
     /* horizontal histogram */
-    printf("\nsource matrix:\n");
+    printf("\nhorizontal histogram:\n");
     printHorizontalSymbol(horizontal_matrix, wordsptr, words_count, max_words_length);
 
     /* vertical histogram */
-    printf("\nDestination matrix:\n");
+    printf("\nvertical histogram:\n");
     printVerticalSymbol(vertical_matrix, wordsptr, max_words_length, words_count);
 }
 
