@@ -3,7 +3,7 @@
 
 /* Exercise 1-16. Revise the main routine of the longest-line program so it will 
  * correctly print the length of arbitrarily long input lines, and as much as 
- * possible of the test */
+ * possible of the text */
 
 int mygetline(char line[], int maxline);
 void copy(char to[], char from[]);
@@ -23,7 +23,7 @@ int main()
             copy(longest, line);
         }
     if (max > 0)
-        printf("%d  %s", max, longest);
+        printf("%d  %s", max, longest);    /* print read length of arbitrarily long input lines and text */
 
     return 0;
 }
@@ -37,8 +37,9 @@ int mygetline(char s[], int lim)
         if (i < lim-1)
             s[i] = c;
 
-    if (i >= lim-1) {
+    if (i >= lim-1) {    /* when length is larger than lim */
         s[lim-1] = '\0';
+        i++;
         return i;
     }
 
