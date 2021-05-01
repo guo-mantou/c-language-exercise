@@ -1,13 +1,18 @@
 #include <stdio.h>
+#include <string.h>
 #define MAXLINE       1000
-#define BLANKLINE     1
-#define NONBLANKLINE  0
+#define BLANKLINE     0
+#define NONBLANKLINE  1
+#define TRAILING      0
+#define NONTRAILING   1
+
 
 /* Exercise 1-18. Write a program to remove trailing blanks and tabs from 
  * each line of input, and to delete entirely blank lines */
 
 int mygetline(char line[], int lim);
 int deleteWhiteSpace(char t[], char s[]);
+int trailing(char s[]);
 
 int main() 
 {
@@ -44,20 +49,43 @@ int mygetline(char s[], int lim)
  * blank lines, store in t[] */
 int deleteWhiteSpace(char t[], char s[])
 {
-    int c, i;
+    int c;
+    int i;      /* count input character */
+    int bnf;    /* blank newline flag */
 
     i = 0;
+    bnf = BLANKLINE;
 
     while (c = *s++) {
-        if (i==0 && c=='\n' || c=='\t')
-            continue;
+        if (i==0 && c=='\n')    /* entirely blank line */
+            break;
+
+        if ((c==' ' || c=='\t') && trailing(s) == TRAILING) {
+            *t++ = '\n';
+            break;
+        }
+
         *t++ = c;
         i++;
+        bnf = NONBLANKLINE;
     }
 
     *t = '\0';
+    return bnf;
+}
 
-    i = (i == 0) ? BLANKLINE : NONBLANKLINE;
+/* trailing: determine whether the space or tab is trailing space or tab */
+int trailing(char s[])
+{
+    int c;
+    int flag;
 
-    return i;
+    flag = TRAILING;
+    while ((c = *s++) != '\0') {
+        if (c==' ' || c=='\t' || c=='\n')
+            continue;
+        flag = NONTRAILING;
+    }
+
+    return flag;
 }
