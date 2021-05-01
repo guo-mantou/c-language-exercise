@@ -81,10 +81,11 @@ int trailing(char s[])
     int flag;
 
     flag = TRAILING;
-    while ((c = *s++) != '\0') {
+    while (c = *s++) {
         if (c==' ' || c=='\t' || c=='\n')
             continue;
         flag = NONTRAILING;
+        break;
     }
 
     return flag;
