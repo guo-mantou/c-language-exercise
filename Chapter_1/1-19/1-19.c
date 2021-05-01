@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #define MAXLINE  1000
 
@@ -42,22 +43,25 @@ void reverse(char s[])
 {
     int len, i;
     int nb;    /* newline bias */
-    char t[MAXLINE];
+    char tmp;
 
     len = 0;
     nb = 0;
 
-    while (t[len] = s[len]) {
-        if (t[len] == '\n')
+    while (s[len]) {
+        if (s[len] == '\n')
             nb = 1;
         len++;
     }
 
-    for (i = 0; i < len-nb; i++)
-        s[i] = t[len-nb-1-i];
+    for (i = 0; i < (len-nb)/2; i++) {
+        tmp = s[i];
+        s[i] = s[len-nb-1-i];
+        s[len-nb-1-i] = tmp;
+    }
 
     if (nb == 1)
-        s[i++] = '\n';
+        s[len-1] = '\n';
 
-    s[i] = '\0';
+    s[len] = '\0';
 }
