@@ -7,6 +7,8 @@
  * blank would suffice to reach a tab stop, which should be given prefer-
  * rence? */
 
+/* In this version, tab is given preferrence. */
+
 int mygetline(char s[], int lim);
 void entab(char t[], char s[]);
 int main()
@@ -21,7 +23,6 @@ int main()
 
     return 0;
 }
-
 
 /* mygetline:  read a line to s, return length */
 int mygetline(char s[], int lim)
@@ -45,23 +46,29 @@ int mygetline(char s[], int lim)
 void entab(char t[], char s[])
 {
     int i, j;
-    int n, cn, tabn, spacen;    /* 'cn' is the number of characters before consecutive spaces */
-    int tflag;    /* tab flag */
+    int n, tn;    
+    int ts;    /* last subscription of tab before consecutive spaces in s */
 
-    tflag = 0;
+    tn = 0;
+    ts = -1;
+
     for (i=0, j=0; t[j] = s[i]; i++, j++) {
         if (s[i] == '\t')
-            tflag = 1;
+            ts = i;
 
         if (s[i] == ' ') {
-            cn = i;
-            for (n = 0; s[i] == ' '; i++, n++)
-                ;
-            tabn = n/8;
-            spacen = (tflag == 0) ? n%8+cn%8 : n%8;
-            while (tabn--)
+            for (n = 0; s[i] == ' '; i++)
+                if ((i-ts)%8 == 0) {
+                    tn++;
+                    n = 0;
+                }
+                else
+                    n++;
+
+            //printf("tn: %d\tn: %d\n", tn, n);
+            while (tn--)
                 t[j++] = '\t';
-            while (spacen--)
+            while (n--)
                 t[j++] = ' ';
             i--;
             j--;
