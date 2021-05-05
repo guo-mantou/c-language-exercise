@@ -1,2 +1,2 @@
-aaaaaaaaaaaaaaaaaaaaaa
-a	b	c
+1. a\tb -> a       (7 spaces)b
+2. a\taa\taaa\tb -> a       (7 spaces)aa      (6 spaces)aaa     (5 spaces)b

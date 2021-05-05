@@ -10,21 +10,14 @@
  * parameter? */
 
 int mygetline(char line[], int lim);
-void detab(char t[], char s[], int n);
-int main(int argc, char *argv[])
+void detab(char t[], char s[]);
+int main()
 {
     char line[MAXLINE];
     char no_tab_line[MAXLINE];
-    int n;    /* number of blanks */
 
-    if (argc != 2) {
-        printf("Usage: %s [number]\n", argv[0]);
-        return -1;
-    }
-
-    n = (atoi(argv[1]) <= 8) ? atoi(argv[1]) : 8;
     while (mygetline(line, MAXLINE) > 0) {
-        detab(no_tab_line, line, n);
+        detab(no_tab_line, line);
         printf("%s", no_tab_line);
     }
 
@@ -50,18 +43,21 @@ int mygetline(char s[], int lim)
 }
 
 /* detab: replace the tabs in s with n blank spaces */
-void detab(char t[], char s[], int n)
+void detab(char t[], char s[])
 {
-    char blanks[n];
     int i, j;
+    int lts;    /* last tab subscription in s */
+    int sn;     /* space number */
 
-    for (i = 0; i < n; i++)
-        blanks[i] = ' ';
-
+    lts = -1;
+    sn = 0;
     for (i=0, j=0; t[j] = s[i]; i++, j++)
-        if (t[j] == '\t') {
-            t[j] = '\0';
-            strcat(t, blanks);
-            j = j + n - 1;
+        if (s[i] == '\t') {
+            sn = 8 - (i-lts-1)%8;
+            //printf("sn: %d\n", sn);
+            while (sn--)
+                t[j++] = ' ';
+            j--;
+            lts = i;
         }
 }
