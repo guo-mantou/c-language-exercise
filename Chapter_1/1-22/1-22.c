@@ -2,11 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 #define MAXLINE  1000
-#define tail  tmp[nbc+1] = '\n'; \
-                           tmp[nbc+2] = '\0'; \
-                           char *p = malloc(n+1); \
-                           strcpy(p, tmp); \
-                           t[k++] = p
+#define myalloc(i)  tmp[i] = '\n'; \
+                             tmp[i+1] = '\0'; \
+                             char *p = malloc(n+1);  \
+                             strcpy(p, tmp);  \
+                             t[k++] = p
 
 /* Exercise 1-22. Write a program to "fold" long input lines into two or more 
  * shorter lines after the last non-blank character that occurs before the 
@@ -65,28 +65,31 @@ int foldstr(char *t[], char s[], int n)
     char tmp[n+1];
     int i, j, k;
     int c;
-    int nbc;    /* last non-blank character subscription */
+    int lbc;    /* last blank character subscription */
 
-    nbc = -1;
+    lbc = -1;
     for (i=0, j=0, k=0; tmp[j] = s[i]; i++) {
-        if ((c=tmp[j]) >= 'a' && c <= 'z' || c >= '0' && c <= '9')
-            nbc = j;
+        if ((c=tmp[j])==' ' || c=='\t')
+            lbc = j;
 
-        if (j == n-2) {
-            if (nbc == j && ((c=s[i+1]) >= 'a' && c <= 'z' || c >= '0' && c <= '9')) {
-                tmp[nbc] = '-';
+        if (j == n-1) {
+            if (lbc == -1) {    /* there are no blanks and tabs before the specified column */
+                myalloc(j);
                 i--;
             }
-            tail;
+            else {
+                myalloc(lbc);
+                i = i - (j-lbc);
+            }
             j = 0;
+            lbc = -1;
         }
         else
             j++;
     }
 
-    if (j != 0) {
-        tail;
-    }
+    if (j > 0 && j <= n-1)
+        myalloc(j);
 
     return k;
 }
