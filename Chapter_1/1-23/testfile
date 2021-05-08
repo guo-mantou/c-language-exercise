@@ -1,0 +1,6 @@
+printf("abc");    /* test */
+printf("abc");    // test
+printf("/* abc */");    /* test */
+printf("//abc");    //test
+printf("'/* abc */ //'");    // test
+printf("'/* abc */ //'");    /* test */
