@@ -1,1 +1,62 @@
-{{}}}
+void countSymbol(int a[], char s[])
+{
+    int i, c;
+
+    for (i = 0; c = s[i]; i++)
+        switch (c) {
+            case '(':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[PARENTHESES]++;
+                break;
+
+            case ')':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[PARENTHESES]--;
+                break;
+
+            case '[':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[BRACKETS]++;
+                break;
+
+            case ']':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[BRACKETS]--;
+                break;
+
+            case '{':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[BRACES]++;
+                break;
+
+            case '}':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[BRACES]--;
+                break;
+
+            case '\'':
+                if (a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
+                    a[SINGLEQUOTE]++;
+                if (a[SINGLEQUOTE] == 2)
+                    a[SINGLEQUOTE] = 0;
+                break;
+
+            case '"':
+                if (a[SINGLEQUOTE] != 1 && a[ACOMMENT]!=1)
+                    a[DOUBLEQUOTE]++;
+                if (a[DOUBLEQUOTE] == 2)
+                    a[DOUBLEQUOTE] = 0;
+                break;
+
+            case '/':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='*')
+                    a[ACOMMENT]++;
+                break;
+
+            case '*':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
+                    a[ACOMMENT]--;
+                break;
+
+        }
+}

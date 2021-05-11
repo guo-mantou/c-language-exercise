@@ -5,6 +5,7 @@
 #define BRACES        2
 #define SINGLEQUOTE   3
 #define DOUBLEQUOTE   4
+#define ACOMMENT      5
 
 #define check(s)    if (count[i] != 0) \
                                     printf("unbalanced %s\n", s)
@@ -15,6 +16,8 @@
  * single and double, escape sequences and comments. (
  * This program is hard if you do it in full generality)*/ 
 
+/* TODO: 1 double slash comment
+ *       2 escape sequence */
 int mygetline(char s[], int lim);
 void countSymbol(int a[], char s[]);
 int main()
@@ -22,11 +25,11 @@ int main()
     char line[MAXLINE];
     int i;
     int count[10] = { 0 };    // 0 parentheses 1 brackets 2 braces 3 single quote 
-    // 4 double quote
+                              // 4 double quote 5 asterisk-comment
     while (mygetline(line, MAXLINE) > 0)
         countSymbol(count, line);
 
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < 6; i++)
         switch (i) {
             case PARENTHESES:
                 {
@@ -59,6 +62,13 @@ int main()
             case DOUBLEQUOTE:
                 {
                     char *s = "double quote";
+                    check(s);
+                }
+                break;
+
+            case ACOMMENT:
+                {
+                    char *s = "asterisk comment";
                     check(s);
                 }
                 break;
@@ -98,47 +108,64 @@ void countSymbol(int a[], char s[])
     for (i = 0; c = s[i]; i++)
         switch (c) {
             case '(':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[PARENTHESES]++;
                 break;
 
             case ')':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[PARENTHESES]--;
                 break;
 
             case '[':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACKETS]++;
                 break;
 
             case ']':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACKETS]--;
                 break;
 
             case '{':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACES]++;
                 break;
 
             case '}':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACES]--;
                 break;
 
             case '\'':
-                if (a[DOUBLEQUOTE] != 1)
+                if (a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[SINGLEQUOTE]++;
                 if (a[SINGLEQUOTE] == 2)
                     a[SINGLEQUOTE] = 0;
                 break;
 
             case '"':
-                if (a[SINGLEQUOTE] != 1)
+                if (a[SINGLEQUOTE] != 1 && a[ACOMMENT]!=1)
                     a[DOUBLEQUOTE]++;
                 if (a[DOUBLEQUOTE] == 2)
                     a[DOUBLEQUOTE] = 0;
+                break;
+
+            case '/':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='*')
+                    a[ACOMMENT]++;
+                break;
+
+            case '*':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
+                    a[ACOMMENT]--;
+                break;
+
+            case '\\':
+                i++;
+                break;
+
+            default:
                 break;
         }
 }
