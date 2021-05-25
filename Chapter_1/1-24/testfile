@@ -1,3 +1,1241 @@
+#include <stdio.h>
+#define BUFSIZE 100
+
+char buf[BUFSIZE];    /* buffer for ungetch */
+int bufp = 0;        /* next free position in buf */
+
+/* get a (possible pushed back) character */
+int getch(void) {
+    return (bufp > 0) ? buf[--bufp] : getchar();
+}
+
+/* push character back on input */
+void ungetch(int c) {
+    if (bufp >= BUFSIZE)
+        printf("ungetch: too many characters\n");
+    else
+        buf[bufp++] = c;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include "calc.h"
+
+#define MAXOP 100
+
+/* reverse Polish calculator */
+int main()
+{
+    int type;
+    double op2, op3;
+    int iop3, iop4;
+    char s[MAXOP];
+
+    while ((type = getop(s)) != EOF) {
+        switch (type) {
+            case NUMBER:
+                push(atof(s));
+                break;
+            case '+':
+                push(pop() + pop());
+                break;
+            case '*':
+                push(pop() * pop());
+                break;
+            case '-':
+                op2 = pop();
+                push(pop() - op2);
+                break;
+            case '/':
+                op2 = pop();
+                if (op2 != 0.0)
+                    push(pop() / op2);
+                else
+                    printf("error: zero divisor\n");
+                break;
+            case '%':
+                //op2 = pop();
+                if ((op2 = pop()) != 0.0) {
+                    //op3 = pop();
+                    if ((Isinteger(op2) != -1.1) && (Isinteger(op3 = pop()) != -1.1)) {
+                        push((int)op3 % (int)op2);
+                    }
+                    else
+                        printf("error: modulus include decimal point\n");
+                }
+                else
+                    printf("error: zero divisor\n");
+                break;
+            case '\n':
+                printf("\t%.8g\n", pop());
+                break;
+            default:
+                printf("error: unknown command %s\n", s);
+                break;
+        }
+    }
+    return 0;
+}
+#include <stdio.h>
+#include "calc.h"
+
+#define MAXVAL 100    /* maximum depth of val stack */
+
+int sp = 0;        /* next free stack position */
+double val[MAXVAL];        /* value stack */
+
+/* push: push f onto value stack */
+void push(double f) {
+    if (sp < MAXVAL)
+        val[sp++] = f;
+    else
+        printf("error: stack full, can't push %g\n", f);
+}
+
+/* pop: pop and return top value from stack */
+double pop(void) {
+    if (sp > 0)
+        return val[--sp];
+    else {
+        printf("error: stack empty\n");
+        return 0.0;
+    }
+}
+#include <stdio.h>
+#include <ctype.h>
+#include "calc.h"
+#define MAX   100
+
+/* getop: get next operator or numeric operand */
+int getop(char s[])
+{
+    int i, c, j;
+
+    while ((s[0] = c = getch()) == ' ' || c == '\t')
+        ;
+    s[1] = '\0';
+    if (!isdigit(c) && c != '.' && c != '-')
+        return c;        /* not a number */
+
+    j = 0;
+    if (c == '-') {
+        if (!isdigit(s[1] = c = getch())) {	/* after minus is not a number */
+            ungetch(c);
+            s[1] = '\0';
+            return s[0];
+        }
+        else 
+            j = 1;	/* negative number, so i begin at 1 */
+    }
+    i = (j == 1) ? 1 : 0;
+    if (isdigit(c))        /* collect integer part */
+        while (isdigit(s[++i] = c = getch()))
+            ;
+    if (c == '.')        /* collect fraction part */
+        while (isdigit(s[++i] = c = getch()))
+            ;
+    s[i] = '\0';
+    if (c != EOF)
+        ungetch(c);
+
+    return NUMBER;
+}
+
+/* verify the number whether include a decimal point */
+double Isinteger(double d)
+{
+    int i;
+    char s[MAX];
+    sprintf(s, "%g", d);
+    for (i = 0; s[i] != '.' && s[i] != '\0'; i++)
+        ;
+    if (s[i] == '\0')
+        return d;
+    else 
+        return -1.1;
+}
+
+#include <stdio.h>
+
+#define swap(t, x, y)        {t temp; temp = x; x = y; y = temp;}
+
+//declare functions
+int ex4_14();
+
+int main()
+{
+    ex4_14();
+    return 0;
+}
+
+int ex4_14()
+{
+    int x, y;
+
+    x = 99;
+    y = 88;
+
+    printf("t = int, x = %d, y = %d\n", x, y);
+    swap(int, x, y)
+    printf("after swap, x = %d, y = %d\n", x, y);
+
+    return 0;
+}
+#include <stdio.h>     /* for printf */
+#include <stdlib.h>    /* for exit */
+#define  MAXSIZE  100
+
+/* Exercise 7-8. Write a program to print a set of files, starting
+ * each new one on a new page, with a new page, with a title and 
+ * a running page count for each file */
+
+void filecopy(FILE *ifp, FILE *ofp);
+void decoration_filecopy(FILE *ifp, FILE *ofp, char *ifname, int plines);
+
+int main(int argc, char *argv[])
+{
+    /* 1 print file
+     * 2 add Decoration: title && pages 
+     * 1 page = 5 lines */
+    FILE *fp;
+    char *prog;
+    int plines;
+
+    prog = argv[0];   /* get program name */
+    plines = 10;      /* one page 10 lines */
+
+    /* Usage: ./a.out file1 file2 ... */
+    if (argc == 1)
+        filecopy(stdin, stdout);
+    else
+        while (--argc > 0)
+            if ((fp = fopen(*++argv, "r")) == NULL) {
+                fprintf(stderr, "%s: can't open %s", prog, *argv);
+                exit(EXIT_FAILURE);
+            }
+            else {
+                decoration_filecopy(fp, stdout, *argv, plines);
+                pclose(fp);
+            }
+
+    exit(EXIT_SUCCESS);
+}
+
+/* filecopy:  copy file ifp to file ofp */
+void filecopy(FILE *ifp, FILE *ofp)
+{
+    int c;
+
+    while ((c = getc(ifp)) != EOF)
+        putc(c, ofp);
+}
+
+/* decoration_filecopy: print 'ifname' lines from file ifp in decoration like:
+ *
+ * ifname                                     pages
+ * file content ...
+ *
+ * para:
+ * ifname: input file's name
+ * plines: number of lines of one page */
+void decoration_filecopy(FILE *ifp, FILE *ofp, char *ifname, int plines)
+{
+    int i, pages, tmp;
+    char buf[MAXSIZE] = "";
+
+    pages = 1;
+
+    while (1) {
+        tmp = plines;
+        printf("%-80s", ifname);    /* header: file name */
+        printf("Pages  %d\n\n", pages++);  /* header: pages */
+
+        /* print 'plines' lines of input file ifp */
+        while (tmp-- > 0) {
+            if (fgets(buf, MAXSIZE, ifp) == NULL) {   /* EOF */
+                printf("-----%s end----- \n\n", ifname);     /* footer */
+                return;
+            }
+            else 
+                fputs(buf, ofp);
+        }
+        printf("\n");
+    }
+}
+#include <stdio.h>  /* for printf and exit */
+#include <string.h> /* for strcmp */
+#include <stdlib.h> /* for exit */ 
+
+#define MAXSIZE    100
+#define DEFFER     1
+#define INDENTICAL 0
+
+/* Exercise 7-6. Write a program to compare two files, printing the first line
+ * where they differ. */
+
+int main(int argc, char *argv[])
+{
+    FILE *fpa, *fpb;
+    char a[MAXSIZE] = "";
+    char b[MAXSIZE] = "";
+    char *pa, *pb;
+    int i, differ;
+
+    i = 0;
+    differ = INDENTICAL;
+
+    /* file 1 open */
+    if ((fpa = fopen(argv[1], "r")) == NULL) {
+        fprintf(stderr, "%s: can't open file.\n", argv[1]);
+        exit(1);
+    }
+
+    /* file 2 open */
+    if ((fpb = fopen(argv[2], "r")) == NULL) {
+        fprintf(stderr, "%s: can't open file.\n", argv[2]);
+        exit(2);
+    }
+
+
+    /* read lines and print differ lines */
+    while ((pa = fgets(a, MAXSIZE, fpa)) != NULL && (pb = fgets(b, MAXSIZE, fpb)) != NULL) {
+        i++;  /* line number */ 
+        if (strcmp(a, b)) {
+            printf("Different Lines:\n");
+            printf("%-10s line %d: ", argv[1], i);
+            printf("%s", a);
+            printf("%-10s line %d: ", argv[2], i);
+            printf("%s", b);
+            differ = DEFFER;
+
+            break;
+        }
+    }
+
+    /* print title */ 
+    printf("\nDiffer Result:\n");
+
+    /* print result */
+    if (differ == INDENTICAL)
+        printf("'%s' and '%s' are indentical\n", argv[1], argv[2]);
+    else if (differ == DEFFER)
+        printf("'%s' and '%s' are non-indentical\n", argv[1], argv[2]);
+    printf("Differ completely\n");
+
+    /* file 1 & 2 close */
+    fclose(fpa);
+    fclose(fpb);
+
+    exit(0);
+}
+
+
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>      /* for getopt */
+#define  MAXSIZE   100
+#define  OPTSTRING "nx"  /* for getopt */ 
+
+/* Exercise 7-7. Modify the pattern finding program of Chapter 5 to 
+ * take its input from a set of named files or, if no files are named 
+ * as arguments, from the standard input. Should the file name be printed
+ * when a matching line is found? -Yes 
+ *
+ * This program is equivalent to 'grep [-n] [-v] pattern [files]' */
+
+int main(int argc, char *argv[])
+{
+    int c, myargc;
+    int number, except;
+    char *lineptr;
+    size_t lsize;
+    int lnum;      /* line's number */
+    char pattern[MAXSIZE] = "";
+    FILE *fp;
+
+    number = 0;
+    except = 0;
+    lineptr = NULL;
+    lsize = 0;
+    lnum = 0;
+
+    /* process options */
+    while ((c = getopt(argc, argv, OPTSTRING)) != -1) {
+        switch (c) {
+            case 'n':
+                number = 1;
+                break;
+
+            case 'x':
+                except = 1;
+                break;
+
+            default:  /* '?' */
+                fprintf(stderr, "Usage: %s [-n] [-x] pattern [files]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    myargc = argc - optind + 1;
+    /* pattern not found */
+    if (myargc == 1) {
+        fprintf(stderr, "Invalid pattern!\n");
+        fprintf(stderr, "Usage: %s [-n] [-x] pattern [files]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(pattern, argv[optind]);   /* get pattern */
+
+    /* determine stdin or specified file */
+    if (myargc == 2) {    /* stdin */
+        printf("No specified file, read lines from standard input\n");
+        fp = stdin;
+
+        /* process pattern */
+        while (getline(&lineptr, &lsize, fp) > 0) {
+            lnum++;   /* record lines number */
+            if ((strstr(lineptr, pattern) != NULL) != except) {
+                if (number == 1)
+                    printf("%d:", lnum);
+                printf("%s", lineptr);
+            }
+        }
+    }
+    else     /* specified file */
+        while (myargc-- > 0 && (fp = fopen(argv[++optind], "r")) != NULL) { /* open file */
+            lnum = 0;  /* clear line number in next file */
+
+            /* process pattern */
+            while (getline(&lineptr, &lsize, fp) > 0) {
+                lnum++;   /* record lines number */
+                if ((strstr(lineptr, pattern) != NULL) != except) {
+                    printf("%s:", argv[optind]);  /* print file name */
+                    if (number == 1)
+                        printf("line %d: ", lnum);
+                    printf("%s", lineptr);
+                }
+            }
+            fclose(fp);   /* close file */
+        }
+
+    free(lineptr);   /* free lineptr */
+
+    exit(EXIT_SUCCESS);
+}
+#include <stdio.h>
+
+/* count blanks, tabs, and newlines */
+int main()
+{
+    int c, nb, nt, nl;
+    
+    nb = nt = nl = 0;
+    while ((c = getchar()) != EOF) {
+        if (c == ' ')
+            ++nb;
+        else if (c == '\t')
+            ++nt;
+        else if (c == '\n')
+            ++nl;
+    }
+    printf("blanks count is %d\ntabs count is %d\nnewlines count is %d\n", nb, nt, nl);
+
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#define MAXLINE       1000
+#define BLANKLINE     0
+#define NONBLANKLINE  1
+#define TRAILING      0
+#define NONTRAILING   1
+
+
+/* Exercise 1-18. Write a program to remove trailing blanks and tabs from 
+ * each line of input, and to delete entirely blank lines */
+
+int mygetline(char line[], int lim);
+int deleteWhiteSpace(char t[], char s[]);
+int trailing(char s[]);
+
+int main() 
+{
+    char line[MAXLINE];    /* the input line */
+    char realline[MAXLINE];    /* without white space line */
+
+    while (mygetline(line, MAXLINE) > 0) {
+        if (deleteWhiteSpace(realline, line) != BLANKLINE)
+            printf("%s", realline);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* deleteWhiteSpace: remove s[]'s trailing blanks and tab and entirely 
+ * blank lines, store in t[] */
+int deleteWhiteSpace(char t[], char s[])
+{
+    int c;
+    int i;      /* count input character */
+    int bnf;    /* blank newline flag */
+
+    i = 0;
+    bnf = BLANKLINE;
+
+    while (c = *s++) {
+        if (i==0 && c=='\n')    /* entirely blank line */
+            break;
+
+        if ((c==' ' || c=='\t') && trailing(s) == TRAILING) {
+            *t++ = '\n';
+            break;
+        }
+
+        *t++ = c;
+        i++;
+        bnf = NONBLANKLINE;
+    }
+
+    *t = '\0';
+    return bnf;
+}
+
+/* trailing: determine whether the space or tab is trailing space or tab */
+int trailing(char s[])
+{
+    int c;
+    int flag;
+
+    flag = TRAILING;
+    while (c = *s++) {
+        if (c==' ' || c=='\t' || c=='\n')
+            continue;
+        flag = NONTRAILING;
+        break;
+    }
+
+    return flag;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define  MAXLINE   1000
+
+/* Exercise 1-20. Write a program "detab" that replaces tabs 
+ * in the input with the proper number of blanks to space to
+ * the next tab stop. Assume a fixed set of tab stops, say 
+ * every "n" columns. Should "n" be a variable or symbolic 
+ * parameter? */
+
+int mygetline(char line[], int lim);
+void detab(char t[], char s[]);
+int main()
+{
+    char line[MAXLINE];
+    char no_tab_line[MAXLINE];
+
+    while (mygetline(line, MAXLINE) > 0) {
+        detab(no_tab_line, line);
+        printf("%s", no_tab_line);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* detab: replace the tabs in s with n blank spaces */
+void detab(char t[], char s[])
+{
+    int i, j;
+    int lts;    /* last tab subscription in s */
+    int sn;     /* space number */
+
+    lts = -1;
+    sn = 0;
+    for (i=0, j=0; t[j] = s[i]; i++, j++)
+        if (s[i] == '\t') {
+            sn = 8 - (i-lts-1)%8;
+            //printf("sn: %d\n", sn);
+            while (sn--)
+                t[j++] = ' ';
+            j--;
+            lts = i;
+        }
+}
+#include <stdio.h>
+
+#define IN	1	/* inside a word */
+#define OUT	0	/* outside a word */
+
+/* count lines, words, and characters in input */
+int main()
+{
+    int c, nl, nw, nc, state;
+
+    state = OUT;
+    nl = nw = nc = 0;
+    while ((c = getchar()) != EOF) {
+        ++nc;
+        if (c == '\n')
+            ++nl;
+        if (c == ' ' || c == '\n' || c == '\t')
+            state = OUT;
+        else if (state == OUT) {
+            state = IN;
+            ++nw;
+        }
+    }
+    printf("nl = %d\nnw = %d\nnc = %d\n", nl, nw, nc);
+
+    return 0;
+}
+#include <stdio.h>
+
+/* Exercise 1-15. Rewrite the temperature conversion program of Secition 1.2 to
+ * use a function for conversion */
+
+void printFCTable(int lower, int upper, int step);
+
+int main()
+{
+    int lower, upper, step;
+
+    lower = 0;
+    upper = 300;
+    step = 20;
+
+    printFCTable(lower, upper, step);
+
+    return 0;
+}
+
+/* printFCTable: print Fahrenheit-Celsius table */
+void printFCTable(int lower, int upper, int step)
+{
+    float fahr, celsius;
+
+    fahr = lower;
+    while (fahr <= upper) {
+        celsius = (5.0/9.0) * (fahr-32.0);
+        printf("%3.0f %6.1f\n", fahr, celsius);
+        fahr = fahr + step;
+    }
+}
+#include <stdio.h>
+
+int main()
+{
+    int c;
+
+    while (c = (getchar() != EOF)) {
+        printf("%d\n", c);
+        //printf("%c\n", c);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#define MAXLINE       1000
+
+#define check(s)    if (count[i] != 0) \
+                                    printf("unbalanced %s\n", s)
+
+enum syntax_check {PARENTHESES, BRACKETS, BRACES, SINGLEQUOTE, DOUBLEQUOTE, 
+    ACOMMENT, SCOMMENT};
+
+/* Exercise 1-24. Write a program to check a C program for 
+ * rudimentary syntax error like unbalanced parentheses, 
+ * brackets and braces. Don't forget about quotes, both 
+ * single and double, escape sequences and comments. (
+ * This program is hard if you do it in full generality)*/ 
+
+/* TODO: 1 double slash comment
+ *       2 escape sequence */
+int mygetline(char s[], int lim);
+void countSymbol(int a[], char s[]);
+int main()
+{
+    char line[MAXLINE];
+    int i;
+    int count[10] = { 0 };    // 0 parentheses 1 brackets 2 braces 3 single quote 
+                              // 4 double quote 5 asterisk-comment 6 slash-comment
+    while (mygetline(line, MAXLINE) > 0)
+        countSymbol(count, line);
+
+    for (i = 0; i < 6; i++)
+        switch (i) {
+            case PARENTHESES:
+                {
+                    char *s = "parentheses";
+                    check(s);
+                }
+                break;
+
+            case BRACKETS:
+                {
+                    char *s = "brackets";
+                    check(s);
+                }
+                break;
+
+            case BRACES:
+                {
+                    char *s = "braces";
+                    check(s);
+                }
+                break;
+
+            case SINGLEQUOTE:
+                {
+                    char *s = "single quote";
+                    check(s);
+                }
+                break;
+
+            case DOUBLEQUOTE:
+                {
+                    char *s = "double quote";
+                    check(s);
+                }
+                break;
+
+            case ACOMMENT:
+                {
+                    char *s = "asterisk comment";
+                    check(s);
+                }
+                break;
+
+            default:
+                break;
+
+        }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* countSymbol: count the number of parentheses, brackets, braces, single
+ * and double quotes */
+void countSymbol(int a[], char s[])
+{
+    int i, c;
+
+    for (i = 0; c = s[i]; i++)
+        switch (c) {
+            case '(':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[PARENTHESES]++;
+                break;
+
+            case ')':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[PARENTHESES]--;
+                break;
+
+            case '[':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[BRACKETS]++;
+                break;
+
+            case ']':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[BRACKETS]--;
+                break;
+
+            case '{':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[BRACES]++;
+                break;
+
+            case '}':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[BRACES]--;
+                break;
+
+            case '\'':
+                if (a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[SINGLEQUOTE]++;
+                if (a[SINGLEQUOTE] == 2)
+                    a[SINGLEQUOTE] = 0;
+                break;
+
+            case '"':
+                if (a[SINGLEQUOTE] != 1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                    a[DOUBLEQUOTE]++;
+                if (a[DOUBLEQUOTE] == 2)
+                    a[DOUBLEQUOTE] = 0;
+                break;
+
+            case '/':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='*')
+                    a[ACOMMENT]++;
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
+                    a[SCOMMENT]++;
+                break;
+
+            case '*':
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
+                    a[ACOMMENT]--;
+                break;
+
+            case '\\':  /* escape characters */
+                i++;
+                break;
+
+            default:
+                break;
+        }
+
+    if (a[SCOMMENT])    /* clear slash-comment's count when the line has finished */
+        a[SCOMMENT] = 0;
+}
+#include <stdio.h>  /* for printf and exit */
+#include <string.h> /* for strcmp */
+#include <stdlib.h> /* for exit */ 
+
+#define MAXSIZE    100
+#define DEFFER     1
+#define INDENTICAL 0
+
+/* Exercise 7-6. Write a program to compare two files, printing the first line
+ * where they differ. */
+
+int main(int argc, char *argv[])
+{
+    FILE *fpa, *fpb;
+    char a[MAXSIZE] = "";
+    char b[MAXSIZE] = "";
+    char *pa, *pb;
+    int i, differ;
+
+    i = 0;
+    differ = INDENTICAL;
+
+    /* file 1 open */
+    if ((fpa = fopen(argv[1], "r")) == NULL) {
+        fprintf(stderr, "%s: can't open file.\n", argv[1]);
+        exit(1);
+    }
+
+    /* file 2 open */
+    if ((fpb = fopen(argv[2], "r")) == NULL) {
+        fprintf(stderr, "%s: can't open file.\n", argv[2]);
+        exit(2);
+    }
+
+
+    /* read lines and print differ lines */
+    while ((pa = fgets(a, MAXSIZE, fpa)) != NULL && (pb = fgets(b, MAXSIZE, fpb)) != NULL) {
+        i++;  /* line number */ 
+        if (strcmp(a, b)) {
+            printf("Different Lines:\n");
+            printf("%-10s line %d: ", argv[1], i);
+            printf("%s", a);
+            printf("%-10s line %d: ", argv[2], i);
+            printf("%s", b);
+            differ = DEFFER;
+
+            break;
+        }
+    }
+
+    /* print title */ 
+    printf("\nDiffer Result:\n");
+
+    /* print result */
+    if (differ == INDENTICAL)
+        printf("'%s' and '%s' are indentical\n", argv[1], argv[2]);
+    else if (differ == DEFFER)
+        printf("'%s' and '%s' are non-indentical\n", argv[1], argv[2]);
+    printf("Differ completely\n");
+
+    /* file 1 & 2 close */
+    fclose(fpa);
+    fclose(fpb);
+
+    exit(0);
+}
+
+
+
+#include <stdio.h>
+#define  MAXLINE   1000
+
+/* Exercise 1-17. Write a program to print all input lines that 
+ * is longer than 80 characters */
+
+int mygetline(char s[], int lim);
+
+int main()
+{
+    int len;    /* current line length */
+    char line[MAXLINE];  /* current input line */
+
+    while ((len = mygetline(line, MAXLINE)) > 0)
+        if (len > 80)
+            printf("%4d  %s", len, line);
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+#include <stdio.h>
+#define MAXLINE  10
+
+/* Exercise 1-16. Revise the main routine of the longest-line program so it will 
+ * correctly print the length of arbitrarily long input lines, and as much as 
+ * possible of the text */
+
+int mygetline(char line[], int maxline);
+void copy(char to[], char from[]);
+
+int main()
+{
+    int len;        /* current line length */
+    int max;        /* maximum length seen so far */
+    char line[MAXLINE];    /* current input line */
+    char longest[MAXLINE]; /* longest line saved here */
+
+    max = 0;
+
+    while ((len = mygetline(line, MAXLINE)) > 0)
+        if (len > max) {
+            max = len;
+            copy(longest, line);
+        }
+    if (max > 0)
+        printf("%d  %s", max, longest);    /* print read length of arbitrarily long input lines and text */
+
+    return 0;
+}
+
+/* mygetline: read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; (c = getchar())!=EOF && c!='\n'; ++i)
+        if (i < lim-1)
+            s[i] = c;
+
+    if (i >= lim-1) {    /* when length is larger than lim */
+        s[lim-1] = '\0';
+        i++;
+        return i;
+    }
+
+    if (c == '\n') {
+        s[i] = c;
+        ++i;
+    }
+    s[i] = '\0';
+
+    return i;
+}
+
+/* copy: copy 'from' into 'to'; assume to is big enough */
+void copy(char to[], char from[])
+{
+    while ((*to++ = *from++) != '\0')
+        ;
+}
+#include <stdio.h>
+#include <string.h>
+#define MAXLINE       1000
+#define BLANKLINE     0
+#define NONBLANKLINE  1
+#define TRAILING      0
+#define NONTRAILING   1
+
+
+/* Exercise 1-18. Write a program to remove trailing blanks and tabs from 
+ * each line of input, and to delete entirely blank lines */
+
+int mygetline(char line[], int lim);
+int deleteWhiteSpace(char t[], char s[]);
+int trailing(char s[]);
+
+int main() 
+{
+    char line[MAXLINE];    /* the input line */
+    char realline[MAXLINE];    /* without white space line */
+
+    while (mygetline(line, MAXLINE) > 0) {
+        if (deleteWhiteSpace(realline, line) != BLANKLINE)
+            printf("%s", realline);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* deleteWhiteSpace: remove s[]'s trailing blanks and tab and entirely 
+ * blank lines, store in t[] */
+int deleteWhiteSpace(char t[], char s[])
+{
+    int c;
+    int i;      /* count input character */
+    int bnf;    /* blank newline flag */
+
+    i = 0;
+    bnf = BLANKLINE;
+
+    while (c = *s++) {
+        if (i==0 && c=='\n')    /* entirely blank line */
+            break;
+
+        if ((c==' ' || c=='\t') && trailing(s) == TRAILING) {
+            *t++ = '\n';
+            break;
+        }
+
+        *t++ = c;
+        i++;
+        bnf = NONBLANKLINE;
+    }
+
+    *t = '\0';
+    return bnf;
+}
+
+/* trailing: determine whether the space or tab is trailing space or tab */
+int trailing(char s[])
+{
+    int c;
+    int flag;
+
+    flag = TRAILING;
+    while (c = *s++) {
+        if (c==' ' || c=='\t' || c=='\n')
+            continue;
+        flag = NONTRAILING;
+        break;
+    }
+
+    return flag;
+}
+#include <stdio.h>
+
+/* Exercise 1-15. Rewrite the temperature conversion program of Secition 1.2 to
+ * use a function for conversion */
+
+void printFCTable(int lower, int upper, int step);
+
+int main()
+{
+    int lower, upper, step;
+
+    lower = 0;
+    upper = 300;
+    step = 20;
+
+    printFCTable(lower, upper, step);
+
+    return 0;
+}
+
+/* printFCTable: print Fahrenheit-Celsius table */
+void printFCTable(int lower, int upper, int step)
+{
+    float fahr, celsius;
+
+    fahr = lower;
+    while (fahr <= upper) {
+        celsius = (5.0/9.0) * (fahr-32.0);
+        printf("%3.0f %6.1f\n", fahr, celsius);
+        fahr = fahr + step;
+    }
+}
+#include <stdio.h>
+#define MAXLINE       1000
+#define PARENTHESES   0
+#define BRACKETS      1
+#define BRACES        2
+#define SINGLEQUOTE   3
+#define DOUBLEQUOTE   4
+#define ACOMMENT      5
+
+#define check(s)    if (count[i] != 0) \
+                                    printf("unbalanced %s\n", s)
+
+/* Exercise 1-24. Write a program to check a C program for 
+ * rudimentary syntax error like unbalanced parentheses, 
+ * brackets and braces. Don't forget about quotes, both 
+ * single and double, escape sequences and comments. (
+ * This program is hard if you do it in full generality)*/ 
+
+/* TODO: 1 double slash comment
+ *       2 escape sequence */
+int mygetline(char s[], int lim);
+void countSymbol(int a[], char s[]);
+int main()
+{
+    char line[MAXLINE];
+    int i;
+    int count[10] = { 0 };    // 0 parentheses 1 brackets 2 braces 3 single quote 
+                              // 4 double quote 5 asterisk-comment
+    while (mygetline(line, MAXLINE) > 0)
+        countSymbol(count, line);
+
+    for (i = 0; i < 6; i++)
+        switch (i) {
+            case PARENTHESES:
+                {
+                    char *s = "parentheses";
+                    check(s);
+                }
+                break;
+
+            case BRACKETS:
+                {
+                    char *s = "brackets";
+                    check(s);
+                }
+                break;
+
+            case BRACES:
+                {
+                    char *s = "braces";
+                    check(s);
+                }
+                break;
+
+            case SINGLEQUOTE:
+                {
+                    char *s = "single quote";
+                    check(s);
+                }
+                break;
+
+            case DOUBLEQUOTE:
+                {
+                    char *s = "double quote";
+                    check(s);
+                }
+                break;
+
+            case ACOMMENT:
+                {
+                    char *s = "asterisk comment";
+                    check(s);
+                }
+                break;
+
+            default:
+                break;
+
+        }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* countSymbol: count the number of parentheses, brackets, braces, single
+ * and double quotes */
 void countSymbol(int a[], char s[])
 {
     int i, c;
@@ -58,5 +1296,2203 @@ void countSymbol(int a[], char s[])
                     a[ACOMMENT]--;
                 break;
 
+            case '\\':  /* escape characters */
+                i++;
+                break;
+
+            default:
+                break;
         }
+}
+#include <stdio.h>
+#define MAXLINE   1000
+
+
+
+
+
+int sa = 0;    
+
+int mygetline(char s[], int lim);
+void removecomments(char t[], char s[]);
+int main() 
+{
+    char line[MAXLINE];
+    char rcline[MAXLINE];    
+
+    while (mygetline(line, MAXLINE) > 0) {
+        removecomments(rcline, line);
+        printf("%s", rcline);
+    }
+
+    return 0;
+}
+
+
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+
+void removecomments(char t[], char s[])
+{
+    int i, j;
+    int doubleQuote, singleQuote;
+
+    doubleQuote = singleQuote = 0;
+    for (i=0, j=0; t[j] = s[i]; i++, j++) {
+        if (t[j] == '"') {
+            doubleQuote++;
+            if (doubleQuote == 2)
+                doubleQuote = sa = 0;
+        }
+
+        if (t[j] == '\'') {
+            singleQuote++;
+            if (singleQuote == 2)
+                singleQuote = sa = 0;
+        }
+
+        if (doubleQuote!=1 && singleQuote!=1)     
+            if (t[j] == '/') {    
+                if (s[i+1] == '*') {
+                    sa = 1;
+                    int k = i;
+                    while (s[++k])
+                        if (s[k] == '*' && s[k+1] == '/') {
+                            sa = 0;
+                            i = k+1;
+                            j--;
+                            break;
+                        }
+                }
+
+                if (s[i+1] == '/') {
+                    t[j] = '\n';
+                    t[j+1] = '\0';
+                    break;
+                }
+            }
+            else if (sa == 1) {    
+                int k = i;
+                while (s[++k])
+                    if (s[k] == '*' && s[k+1] == '/')
+                        sa = 0;
+                    t[0] = '\n';
+                    t[1] = '\0';
+                    break;
+            }
+    }
+}
+#include <stdio.h>
+
+/* prints its input one word per line */
+int main()
+{
+    int c;
+
+    while ((c = getchar()) != EOF) {
+        if (c != ' ' && c != '\n' && c != '\t') {
+            putchar(c);
+            while ((c = getchar()) != ' ' && c != '\n' && c != '\t') 
+                putchar(c);
+            putchar('\n');
+        }
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define MAXLINE  1000
+#define myalloc(i)  tmp[i] = '\n'; \
+                             tmp[i+1] = '\0'; \
+                             char *p = malloc(n+1);  \
+                             strcpy(p, tmp);  \
+                             t[k++] = p
+
+/* Exercise 1-22. Write a program to "fold" long input lines into two or more 
+ * shorter lines after the last non-blank character that occurs before the 
+ * n-th column of input. Make sure your program does sth intelligent with 
+ * very long lines, and if there are no blanks and tabs before the specified 
+ * column. */
+
+int foldstr(char *t[], char s[], int n);
+int mygetline(char s[], int lim);
+
+int main(int argc, char *argv[]) 
+{
+    int length;    /* foldline length */
+    int i, n;
+    char line[MAXLINE];
+    char *foldline[MAXLINE];
+
+    if (argc != 2) {
+        printf("Usage: %s [n]\n", argv[0]);
+        return -1;
+    }
+
+    n = (atoi(argv[1])) ? atoi(argv[1]) : 6;
+    while (mygetline(line, MAXLINE) > 0) {
+        length = foldstr(foldline, line, n);
+        for (i = 0; i < length; i++) {
+            printf("%s", foldline[i]);
+            free(foldline[i]);
+        }
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* foldstr:  fold long input lines into more shorter lines */
+int foldstr(char *t[], char s[], int n)
+{
+    char tmp[n+1];
+    int i, j, k;
+    int c;
+    int lbc;    /* last blank character subscription */
+
+    lbc = -1;
+    for (i=0, j=0, k=0; tmp[j] = s[i]; i++) {
+        if ((c=tmp[j])==' ' || c=='\t')
+            lbc = j;
+
+        if (j == n-1) {
+            if (lbc == -1) {    /* there are no blanks and tabs before the specified column */
+                myalloc(j);
+                i--;
+            }
+            else {
+                myalloc(lbc);
+                i = i - (j-lbc);
+            }
+            j = 0;
+            lbc = -1;
+        }
+        else
+            j++;
+    }
+
+    if (j > 0 && j <= n-1)
+        myalloc(j);
+
+    return k;
+}
+
+#include <stdio.h>
+
+#define swap(t, x, y)        {t temp; temp = x; x = y; y = temp;}
+
+//declare functions
+int ex4_14();
+
+int main()
+{
+    ex4_14();
+    return 0;
+}
+
+int ex4_14()
+{
+    int x, y;
+
+    x = 99;
+    y = 88;
+
+    printf("t = int, x = %d, y = %d\n", x, y);
+    swap(int, x, y)
+    printf("after swap, x = %d, y = %d\n", x, y);
+
+    return 0;
+}
+#include <stdio.h>
+#define  MAXLINE  1000
+
+/* Exercise 1-21. Write a program "entab" that replaces strings of blanks
+ * by the mininum number of tabs and blanks to achieve the same spacing. 
+ * Use the same tab stops as for "detab". When either a tab or a single 
+ * blank would suffice to reach a tab stop, which should be given prefer-
+ * rence? */
+
+/* In this version, tab is given preferrence. */
+
+int mygetline(char s[], int lim);
+void entab(char t[], char s[]);
+int main()
+{
+    char line[MAXLINE];
+    char entabLine[MAXLINE];
+
+    while (mygetline(line, MAXLINE) > 0) {
+        entab(entabLine, line);
+        printf("%s", entabLine);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* entab: replace spaces in s with mininum tabs and spaces */
+void entab(char t[], char s[])
+{
+    int i, j;
+    int n, tn;    
+    int ts;    /* last subscription of tab before consecutive spaces in s */
+
+    tn = 0;
+    ts = -1;
+
+    for (i=0, j=0; t[j] = s[i]; i++, j++) {
+        if (s[i] == '\t')
+            ts = i;
+
+        if (s[i] == ' ') {
+            for (n = 0; s[i] == ' '; i++)
+                if ((i-ts)%8 == 0) {
+                    tn++;
+                    n = 0;
+                }
+                else
+                    n++;
+
+            //printf("tn: %d\tn: %d\n", tn, n);
+            while (tn--)
+                t[j++] = '\t';
+            while (n--)
+                t[j++] = ' ';
+            i--;
+            j--;
+        }
+    }
+}
+#include <stdio.h>
+
+/* copy input to output, replacing each tabs by \t
+ * each backspace by \b, each backslash by \\ */
+int main()
+{
+    int c;
+
+    while ((c = getchar()) != EOF) {
+        if (c == '\t')
+            printf("\\t");
+        else if (c == '\b')
+            printf("\\b");
+        else if (c == '\\')
+            printf("\\\\");
+        else
+            putchar(c);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+
+int main()
+{
+    printf("The (int)value of EOF is %d\n", EOF);
+    //printf("The (char)value of EOF is %c\n", EOF);
+
+    return 0;
+}
+#include <stdio.h>
+
+int main()
+{
+    int c;
+
+    while (c = (getchar() != EOF)) {
+        printf("%d\n", c);
+        //printf("%c\n", c);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX         100
+
+/* Write a program to print a histogram of the lengths of words in its 
+ * input, horizontally and vertically */
+
+int readwords(char *wordsptr[], int *length, int maxwords);
+int getMaxElem(int a[], int length);
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col);
+void printHorizontalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col);
+void printVerticalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col);
+void printHistogram(char *wordsptr[], int *length, int words_count);
+
+int main()
+{
+    int i;
+    int words_count, max_words_length;
+    int length[MAX] = {0};    // words' length
+    char *input_word_list[MAX];
+
+    words_count = 0;
+
+    if ((words_count = readwords(input_word_list, length, MAX)) == -1) {
+        printf("Beyond max count of words!!\n");
+        return -1;
+    }
+
+    printHistogram(input_word_list, length, words_count);
+
+    /* free */
+    for (i = 0; i < words_count; i++)
+        free(*(input_word_list + i));
+
+    return 0;
+}
+
+/* readwords: store input words and get words count and get every word's length */
+int readwords(char *wordsptr[], int *length, int maxwords)
+{
+    int c, words_length;
+    int words_count;
+    char *p;
+
+    words_count = 0;
+
+    while ((c = getchar()) != EOF) {
+        words_length = 0;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            p = (char *)malloc(MAX);
+            *(p + words_length) = c;
+            words_length++;
+            while (((c = getchar()) >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                *(p + words_length) = c;
+                words_length++;
+            }
+        }
+        else
+            continue;
+
+        *(wordsptr + words_count) = p;
+        length[words_count] = words_length;
+
+        if (words_count++ >= maxwords)
+            return -1;
+    }
+
+    return words_count;
+}
+
+/* printHistogram: print horizontal and vertical histogram */
+void printHistogram(char *wordsptr[], int *length, int words_count)
+{
+    int i, j, max_words_length;
+    char horizontal_matrix[MAX][MAX] = {0};
+    char vertical_matrix[MAX][MAX] = {0};
+
+    max_words_length = getMaxElem(length, words_count);
+
+    for (i = 0; i < words_count; i++)
+        for (j = 0; j < max_words_length; j++)
+            if (j < length[i])
+                horizontal_matrix[i][j] = '|';
+            else 
+                horizontal_matrix[i][j] = ' ';
+
+    matrixMagic(vertical_matrix, horizontal_matrix, words_count, max_words_length);
+
+    /* horizontal histogram */
+    printf("\nhorizontal histogram:\n");
+    printHorizontalSymbol(horizontal_matrix, wordsptr, words_count, max_words_length);
+
+    /* vertical histogram */
+    printf("\nvertical histogram:\n");
+    printVerticalSymbol(vertical_matrix, wordsptr, max_words_length, words_count);
+}
+
+/* getMaxElem: find max element in array a */
+int getMaxElem(int a[], int length)
+{
+    int temp, i;
+
+    temp = a[0];
+
+    for (i = 1; i < length; i++)
+        if (temp < a[i])
+            temp = a[i];
+
+    return temp;
+}
+
+/* matrixMagic: Transpose a matrix, then fold up and down(上下对折) */
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
+            at[col-j-1][i] = a[i][j];
+}
+
+/* printHorizontalSymbol: print horizontal symbol */
+void printHorizontalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        printf("%12s:  ", *(wordsptr + i));
+        for (j = 0; j < col; j++)
+            printf("%-2c", matrix[i][j]);
+        printf("\n");
+    }
+}
+
+/* printVerticalSymbol: print vertical symbol */
+void printVerticalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++)
+            printf("%-12c", matrix[i][j]);
+        printf("\n");
+    }
+
+    for (i = 0; i < col; i++)
+        printf("%-12s", *(wordsptr + i));
+
+    putchar('\n');
+}
+#include <stdio.h>
+#define BUFSIZE 100
+
+char buf[BUFSIZE];    /* buffer for ungetch */
+int bufp = 0;        /* next free position in buf */
+
+/* get a (possible pushed back) character */
+int getch(void) {
+    return (bufp > 0) ? buf[--bufp] : getchar();
+}
+
+/* push character back on input */
+void ungetch(int c) {
+    if (bufp >= BUFSIZE)
+        printf("ungetch: too many characters\n");
+    else
+        buf[bufp++] = c;
+}
+#include <stdio.h>     /* for printf */
+#include <stdlib.h>    /* for exit */
+#define  MAXSIZE  100
+
+/* Exercise 7-8. Write a program to print a set of files, starting
+ * each new one on a new page, with a new page, with a title and 
+ * a running page count for each file */
+
+void filecopy(FILE *ifp, FILE *ofp);
+void decoration_filecopy(FILE *ifp, FILE *ofp, char *ifname, int plines);
+
+int main(int argc, char *argv[])
+{
+    /* 1 print file
+     * 2 add Decoration: title && pages 
+     * 1 page = 5 lines */
+    FILE *fp;
+    char *prog;
+    int plines;
+
+    prog = argv[0];   /* get program name */
+    plines = 10;      /* one page 10 lines */
+
+    /* Usage: ./a.out file1 file2 ... */
+    if (argc == 1)
+        filecopy(stdin, stdout);
+    else
+        while (--argc > 0)
+            if ((fp = fopen(*++argv, "r")) == NULL) {
+                fprintf(stderr, "%s: can't open %s", prog, *argv);
+                exit(EXIT_FAILURE);
+            }
+            else {
+                decoration_filecopy(fp, stdout, *argv, plines);
+                pclose(fp);
+            }
+
+    exit(EXIT_SUCCESS);
+}
+
+/* filecopy:  copy file ifp to file ofp */
+void filecopy(FILE *ifp, FILE *ofp)
+{
+    int c;
+
+    while ((c = getc(ifp)) != EOF)
+        putc(c, ofp);
+}
+
+/* decoration_filecopy: print 'ifname' lines from file ifp in decoration like:
+ *
+ * ifname                                     pages
+ * file content ...
+ *
+ * para:
+ * ifname: input file's name
+ * plines: number of lines of one page */
+void decoration_filecopy(FILE *ifp, FILE *ofp, char *ifname, int plines)
+{
+    int i, pages, tmp;
+    char buf[MAXSIZE] = "";
+
+    pages = 1;
+
+    while (1) {
+        tmp = plines;
+        printf("%-80s", ifname);    /* header: file name */
+        printf("Pages  %d\n\n", pages++);  /* header: pages */
+
+        /* print 'plines' lines of input file ifp */
+        while (tmp-- > 0) {
+            if (fgets(buf, MAXSIZE, ifp) == NULL) {   /* EOF */
+                printf("-----%s end----- \n\n", ifname);     /* footer */
+                return;
+            }
+            else 
+                fputs(buf, ofp);
+        }
+        printf("\n");
+    }
+}
+#include <stdio.h>
+#define MAXLINE   1000
+
+/* Exercise 1-23. Write a program to remove all comments
+ * from a C program. Don't forget to handle quoted strings
+ * and character constants properly. C comments do not nest.*/
+
+int sa = 0;    /* slash astersk */
+
+int mygetline(char s[], int lim);
+void removecomments(char t[], char s[]);
+int main() 
+{
+    char line[MAXLINE];
+    char rcline[MAXLINE];    /* removed comments line */
+
+    while (mygetline(line, MAXLINE) > 0) {
+        removecomments(rcline, line);
+        printf("%s", rcline);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* removecomments: remove C comments in s */
+void removecomments(char t[], char s[])
+{
+    int i, j;
+    int doubleQuote, singleQuote;
+
+    doubleQuote = singleQuote = 0;
+    for (i=0, j=0; t[j] = s[i]; i++, j++) {
+        if (t[j] == '"') {
+            doubleQuote++;
+            if (doubleQuote == 2)
+                doubleQuote = sa = 0;
+        }
+
+        if (t[j] == '\'') {
+            singleQuote++;
+            if (singleQuote == 2)
+                singleQuote = sa = 0;
+        }
+
+        if (doubleQuote!=1 && singleQuote!=1)     
+            if (t[j] == '/') {    /* trailing comments */
+                if (s[i+1] == '*') {
+                    sa = 1;
+                    int k = i;
+                    while (s[++k])
+                        if (s[k] == '*' && s[k+1] == '/') {
+                            sa = 0;
+                            i = k+1;
+                            j--;
+                            break;
+                        }
+                }
+
+                if (s[i+1] == '/') {
+                    t[j] = '\n';
+                    t[j+1] = '\0';
+                    break;
+                }
+            }
+            else if (sa == 1) {    /* paragraph comments */
+                int k = i;
+                while (s[++k])
+                    if (s[k] == '*' && s[k+1] == '/')
+                        sa = 0;
+                    t[0] = '\n';
+                    t[1] = '\0';
+                    break;
+            }
+    }
+}
+#include <stdio.h>
+
+/* count blanks, tabs, and newlines */
+int main()
+{
+    int c, nb, nt, nl;
+    
+    nb = nt = nl = 0;
+    while ((c = getchar()) != EOF) {
+        if (c == ' ')
+            ++nb;
+        else if (c == '\t')
+            ++nt;
+        else if (c == '\n')
+            ++nl;
+    }
+    printf("blanks count is %d\ntabs count is %d\nnewlines count is %d\n", nb, nt, nl);
+
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define  MAXLINE   1000
+
+/* Exercise 1-20. Write a program "detab" that replaces tabs 
+ * in the input with the proper number of blanks to space to
+ * the next tab stop. Assume a fixed set of tab stops, say 
+ * every "n" columns. Should "n" be a variable or symbolic 
+ * parameter? */
+
+int mygetline(char line[], int lim);
+void detab(char t[], char s[]);
+int main()
+{
+    char line[MAXLINE];
+    char no_tab_line[MAXLINE];
+
+    while (mygetline(line, MAXLINE) > 0) {
+        detab(no_tab_line, line);
+        printf("%s", no_tab_line);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* detab: replace the tabs in s with n blank spaces */
+void detab(char t[], char s[])
+{
+    int i, j;
+    int lts;    /* last tab subscription in s */
+    int sn;     /* space number */
+
+    lts = -1;
+    sn = 0;
+    for (i=0, j=0; t[j] = s[i]; i++, j++)
+        if (s[i] == '\t') {
+            sn = 8 - (i-lts-1)%8;
+            //printf("sn: %d\n", sn);
+            while (sn--)
+                t[j++] = ' ';
+            j--;
+            lts = i;
+        }
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include "calc.h"
+
+#define MAXOP 100
+
+/* reverse Polish calculator */
+int main()
+{
+    int type;
+    double op2, op3;
+    int iop3, iop4;
+    char s[MAXOP];
+
+    while ((type = getop(s)) != EOF) {
+        switch (type) {
+            case NUMBER:
+                push(atof(s));
+                break;
+            case '+':
+                push(pop() + pop());
+                break;
+            case '*':
+                push(pop() * pop());
+                break;
+            case '-':
+                op2 = pop();
+                push(pop() - op2);
+                break;
+            case '/':
+                op2 = pop();
+                if (op2 != 0.0)
+                    push(pop() / op2);
+                else
+                    printf("error: zero divisor\n");
+                break;
+            case '%':
+                //op2 = pop();
+                if ((op2 = pop()) != 0.0) {
+                    //op3 = pop();
+                    if ((Isinteger(op2) != -1.1) && (Isinteger(op3 = pop()) != -1.1)) {
+                        push((int)op3 % (int)op2);
+                    }
+                    else
+                        printf("error: modulus include decimal point\n");
+                }
+                else
+                    printf("error: zero divisor\n");
+                break;
+            case '\n':
+                printf("\t%.8g\n", pop());
+                break;
+            default:
+                printf("error: unknown command %s\n", s);
+                break;
+        }
+    }
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>      /* for getopt */
+#define  MAXSIZE   100
+#define  OPTSTRING "nx"  /* for getopt */ 
+
+/* Exercise 7-7. Modify the pattern finding program of Chapter 5 to 
+ * take its input from a set of named files or, if no files are named 
+ * as arguments, from the standard input. Should the file name be printed
+ * when a matching line is found? -Yes 
+ *
+ * This program is equivalent to 'grep [-n] [-v] pattern [files]' */
+
+int main(int argc, char *argv[])
+{
+    int c, myargc;
+    int number, except;
+    char *lineptr;
+    size_t lsize;
+    int lnum;      /* line's number */
+    char pattern[MAXSIZE] = "";
+    FILE *fp;
+
+    number = 0;
+    except = 0;
+    lineptr = NULL;
+    lsize = 0;
+    lnum = 0;
+
+    /* process options */
+    while ((c = getopt(argc, argv, OPTSTRING)) != -1) {
+        switch (c) {
+            case 'n':
+                number = 1;
+                break;
+
+            case 'x':
+                except = 1;
+                break;
+
+            default:  /* '?' */
+                fprintf(stderr, "Usage: %s [-n] [-x] pattern [files]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    myargc = argc - optind + 1;
+    /* pattern not found */
+    if (myargc == 1) {
+        fprintf(stderr, "Invalid pattern!\n");
+        fprintf(stderr, "Usage: %s [-n] [-x] pattern [files]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(pattern, argv[optind]);   /* get pattern */
+
+    /* determine stdin or specified file */
+    if (myargc == 2) {    /* stdin */
+        printf("No specified file, read lines from standard input\n");
+        fp = stdin;
+
+        /* process pattern */
+        while (getline(&lineptr, &lsize, fp) > 0) {
+            lnum++;   /* record lines number */
+            if ((strstr(lineptr, pattern) != NULL) != except) {
+                if (number == 1)
+                    printf("%d:", lnum);
+                printf("%s", lineptr);
+            }
+        }
+    }
+    else     /* specified file */
+        while (myargc-- > 0 && (fp = fopen(argv[++optind], "r")) != NULL) { /* open file */
+            lnum = 0;  /* clear line number in next file */
+
+            /* process pattern */
+            while (getline(&lineptr, &lsize, fp) > 0) {
+                lnum++;   /* record lines number */
+                if ((strstr(lineptr, pattern) != NULL) != except) {
+                    printf("%s:", argv[optind]);  /* print file name */
+                    if (number == 1)
+                        printf("line %d: ", lnum);
+                    printf("%s", lineptr);
+                }
+            }
+            fclose(fp);   /* close file */
+        }
+
+    free(lineptr);   /* free lineptr */
+
+    exit(EXIT_SUCCESS);
+}
+#include <stdio.h>
+#include "calc.h"
+
+#define MAXVAL 100    /* maximum depth of val stack */
+
+int sp = 0;        /* next free stack position */
+double val[MAXVAL];        /* value stack */
+
+/* push: push f onto value stack */
+void push(double f) {
+    if (sp < MAXVAL)
+        val[sp++] = f;
+    else
+        printf("error: stack full, can't push %g\n", f);
+}
+
+/* pop: pop and return top value from stack */
+double pop(void) {
+    if (sp > 0)
+        return val[--sp];
+    else {
+        printf("error: stack empty\n");
+        return 0.0;
+    }
+}
+
+#include <stdio.h>
+#define MAXLINE  1000
+
+/* Exercise 1-19. Write a function 'reverse(s)' that reverses the
+ * character string 's'. Use it to write a program that reverses its
+ * input a line at a time */
+
+int mygetline(char line[], int lim);
+void reverse(char s[]);
+int main()
+{
+    char line[MAXLINE];
+
+    while (mygetline(line, MAXLINE) > 0) {
+        reverse(line);
+        printf("%s", line);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* reverse:  reverse the string s */
+void reverse(char s[])
+{
+    int len, i;
+    int nb;    /* newline bias */
+    char tmp;
+
+    len = 0;
+    nb = 0;
+
+    while (s[len]) {
+        if (s[len] == '\n')
+            nb = 1;
+        len++;
+    }
+
+    for (i = 0; i < (len-nb)/2; i++) {
+        tmp = s[i];
+        s[i] = s[len-nb-1-i];
+        s[len-nb-1-i] = tmp;
+    }
+
+    if (nb == 1)
+        s[len-1] = '\n';
+
+    s[len] = '\0';
+}
+#include <stdio.h>
+
+/* copy input to output, replacing each string
+ * of one or more blanks by a single blank */
+int main()
+{
+    int c;
+
+    while ((c = getchar()) != EOF) {
+        if (c == ' ') {
+            putchar(c); /* print blank */
+            while ((c = getchar()) == ' ')
+                ;
+            putchar(c); /* print first non-blank character */
+            continue;
+        }
+        putchar(c);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+
+#define MAX   100
+
+/* Write a program to print a histogram of the frequencies of different
+ * characters in its input */
+
+int ifRedundant(char *ic, int c);
+int readchars(char *ic, int *freq, int max);
+void printFreq(char *ic, int *freq, int count);
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col);
+void printHorizontalSymbol(char (*matrix)[MAX], char ic[], int row, int col);
+void printVerticalSymbol(char (*matrix)[MAX], char ic[], int row, int col);
+int getMaxElem(int a[], int length);
+
+int main()
+{
+    char ic[MAX] = "";    /* store input characters */
+    int freq[MAX];        /* store the frequencies of input characters */
+    int maxFreq;          /* store the max of the frequencies */
+    int count;            /* store the count of input characters */
+
+    if ((count = readchars(ic, freq, MAX)) == -1) {
+        printf("Too many characters!!\n");
+        return -1;
+    }
+
+    printFreq(ic, freq, count);
+
+    return 0;
+}
+
+/* readchars: store input characters and get frequencies of them */
+int readchars(char *ic, int *freq, int max)
+{
+    int c, i, j;    /* j for count of input characters */
+    int index;
+
+    i = 0;
+    j = 0;
+
+    for (i = 0, j = 0; (c = getchar()) != EOF && j < max; j++) {
+        if ((index = ifRedundant(ic, c)) == -1) {
+            ic[i] = c;
+            freq[i] = 1;
+            i++;
+        }
+        else 
+            freq[index]++;
+    }
+
+    if (j == max)
+        return -1;
+
+    return i;
+}
+
+/* printFreq: print the frequencies's horizontal and vertical histogram */
+void printFreq(char *ic, int *freq, int count)
+{
+    int i, j, max_frequency;
+    char horizontal_matrix[MAX][MAX] = {0};
+    char vertical_matrix[MAX][MAX] = {0};
+
+    max_frequency = getMaxElem(freq, count);
+
+    for (i = 0; i < count; i++)
+        for (j = 0; j < max_frequency; j++)
+            if (j < freq[i])
+                horizontal_matrix[i][j] = '|';
+            else 
+                horizontal_matrix[i][j] = ' ';
+
+    matrixMagic(vertical_matrix, horizontal_matrix, count, max_frequency);
+
+    /* horizontal histogram */
+    printf("\nhorizontal histogram:\n");
+    printHorizontalSymbol(horizontal_matrix, ic, count, max_frequency);
+
+    /* vertical histogram */
+    printf("\nvertical histogram:\n");
+    printVerticalSymbol(vertical_matrix, ic, max_frequency, count);
+}
+
+/* getMaxElem: find max element in array a */
+int getMaxElem(int a[], int length)
+{
+    int temp, i;
+
+    temp = a[0];
+
+    for (i = 1; i < length; i++)
+        if (temp < a[i])
+            temp = a[i];
+
+    return temp;
+}
+
+/* matrixMagic: Transpose a matrix, then fold up and down(上下对折) */
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
+            at[col-j-1][i] = a[i][j];
+}
+
+/* printHorizontalSymbol: print horizontal symbol */
+void printHorizontalSymbol(char (*matrix)[MAX], char ic[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        if (ic[i] == '\n')
+            printf("\\n:  ");
+        else if (ic[i] == '\t')
+            printf("\\t:  ");
+        else
+            printf("%2c:  ", ic[i]);
+
+        for (j = 0; j < col; j++)
+            printf("%-2c", matrix[i][j]);
+        printf("\n");
+    }
+}
+
+/* printVerticalSymbol: print vertical symbol */
+void printVerticalSymbol(char (*matrix)[MAX], char ic[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++)
+            printf("%-3c", matrix[i][j]);
+        printf("\n");
+    }
+
+    for (i = 0; i < col; i++) {
+        if (ic[i] == '\n')
+            printf("\\n ");
+        else if (ic[i] == '\t')
+            printf("\\t ");
+        else
+            printf("%-3c", ic[i]);
+    }
+
+    putchar('\n');
+}
+
+/* ifRedundant: determine if the character c is redundant */
+int ifRedundant(char *ic, int c)
+{
+    int i;
+
+    for (i = 0; ic[i] != '\0' && ic[i] != c; i++)
+        ;
+
+    if (ic[i] == c)
+        return i;
+
+    return -1;
+}
+#include <stdio.h>
+
+#define IN	1	/* inside a word */
+#define OUT	0	/* outside a word */
+
+/* count lines, words, and characters in input */
+int main()
+{
+    int c, nl, nw, nc, state;
+
+    state = OUT;
+    nl = nw = nc = 0;
+    while ((c = getchar()) != EOF) {
+        ++nc;
+        if (c == '\n')
+            ++nl;
+        if (c == ' ' || c == '\n' || c == '\t')
+            state = OUT;
+        else if (state == OUT) {
+            state = IN;
+            ++nw;
+        }
+    }
+    printf("nl = %d\nnw = %d\nnc = %d\n", nl, nw, nc);
+
+    return 0;
+}
+#include <stdio.h>
+#include <ctype.h>
+#include "calc.h"
+#define MAX   100
+
+/* getop: get next operator or numeric operand */
+int getop(char s[])
+{
+    int i, c, j;
+
+    while ((s[0] = c = getch()) == ' ' || c == '\t')
+        ;
+    s[1] = '\0';
+    if (!isdigit(c) && c != '.' && c != '-')
+        return c;        /* not a number */
+
+    j = 0;
+    if (c == '-') {
+        if (!isdigit(s[1] = c = getch())) {	/* after minus is not a number */
+            ungetch(c);
+            s[1] = '\0';
+            return s[0];
+        }
+        else 
+            j = 1;	/* negative number, so i begin at 1 */
+    }
+    i = (j == 1) ? 1 : 0;
+    if (isdigit(c))        /* collect integer part */
+        while (isdigit(s[++i] = c = getch()))
+            ;
+    if (c == '.')        /* collect fraction part */
+        while (isdigit(s[++i] = c = getch()))
+            ;
+    s[i] = '\0';
+    if (c != EOF)
+        ungetch(c);
+
+    return NUMBER;
+}
+
+/* verify the number whether include a decimal point */
+double Isinteger(double d)
+{
+    int i;
+    char s[MAX];
+    sprintf(s, "%g", d);
+    for (i = 0; s[i] != '.' && s[i] != '\0'; i++)
+        ;
+    if (s[i] == '\0')
+        return d;
+    else 
+        return -1.1;
+}
+
+#include <stdio.h>
+#define MAXLINE  1000
+
+/* Exercise 1-19. Write a function 'reverse(s)' that reverses the
+ * character string 's'. Use it to write a program that reverses its
+ * input a line at a time */
+
+int mygetline(char line[], int lim);
+void reverse(char s[]);
+int main()
+{
+    char line[MAXLINE];
+
+    while (mygetline(line, MAXLINE) > 0) {
+        reverse(line);
+        printf("%s", line);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* reverse:  reverse the string s */
+void reverse(char s[])
+{
+    int len, i;
+    int nb;    /* newline bias */
+    char tmp;
+
+    len = 0;
+    nb = 0;
+
+    while (s[len]) {
+        if (s[len] == '\n')
+            nb = 1;
+        len++;
+    }
+
+    for (i = 0; i < (len-nb)/2; i++) {
+        tmp = s[i];
+        s[i] = s[len-nb-1-i];
+        s[len-nb-1-i] = tmp;
+    }
+
+    if (nb == 1)
+        s[len-1] = '\n';
+
+    s[len] = '\0';
+}
+#include <stdio.h>
+
+/* copy input to output, replacing each string
+ * of one or more blanks by a single blank */
+int main()
+{
+    int c;
+
+    while ((c = getchar()) != EOF) {
+        if (c == ' ') {
+            putchar(c); /* print blank */
+            while ((c = getchar()) == ' ')
+                ;
+            putchar(c); /* print first non-blank character */
+            continue;
+        }
+        putchar(c);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX         100
+
+/* Write a program to print a histogram of the lengths of words in its 
+ * input, horizontally and vertically */
+
+int readwords(char *wordsptr[], int *length, int maxwords);
+int getMaxElem(int a[], int length);
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col);
+void printHorizontalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col);
+void printVerticalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col);
+void printHistogram(char *wordsptr[], int *length, int words_count);
+
+int main()
+{
+    int i;
+    int words_count, max_words_length;
+    int length[MAX] = {0};    // words' length
+    char *input_word_list[MAX];
+
+    words_count = 0;
+
+    if ((words_count = readwords(input_word_list, length, MAX)) == -1) {
+        printf("Beyond max count of words!!\n");
+        return -1;
+    }
+
+    printHistogram(input_word_list, length, words_count);
+
+    /* free */
+    for (i = 0; i < words_count; i++)
+        free(*(input_word_list + i));
+
+    return 0;
+}
+
+/* readwords: store input words and get words count and get every word's length */
+int readwords(char *wordsptr[], int *length, int maxwords)
+{
+    int c, words_length;
+    int words_count;
+    char *p;
+
+    words_count = 0;
+
+    while ((c = getchar()) != EOF) {
+        words_length = 0;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            p = (char *)malloc(MAX);
+            *(p + words_length) = c;
+            words_length++;
+            while (((c = getchar()) >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                *(p + words_length) = c;
+                words_length++;
+            }
+        }
+        else
+            continue;
+
+        *(wordsptr + words_count) = p;
+        length[words_count] = words_length;
+
+        if (words_count++ >= maxwords)
+            return -1;
+    }
+
+    return words_count;
+}
+
+/* printHistogram: print horizontal and vertical histogram */
+void printHistogram(char *wordsptr[], int *length, int words_count)
+{
+    int i, j, max_words_length;
+    char horizontal_matrix[MAX][MAX] = {0};
+    char vertical_matrix[MAX][MAX] = {0};
+
+    max_words_length = getMaxElem(length, words_count);
+
+    for (i = 0; i < words_count; i++)
+        for (j = 0; j < max_words_length; j++)
+            if (j < length[i])
+                horizontal_matrix[i][j] = '|';
+            else 
+                horizontal_matrix[i][j] = ' ';
+
+    matrixMagic(vertical_matrix, horizontal_matrix, words_count, max_words_length);
+
+    /* horizontal histogram */
+    printf("\nhorizontal histogram:\n");
+    printHorizontalSymbol(horizontal_matrix, wordsptr, words_count, max_words_length);
+
+    /* vertical histogram */
+    printf("\nvertical histogram:\n");
+    printVerticalSymbol(vertical_matrix, wordsptr, max_words_length, words_count);
+}
+
+/* getMaxElem: find max element in array a */
+int getMaxElem(int a[], int length)
+{
+    int temp, i;
+
+    temp = a[0];
+
+    for (i = 1; i < length; i++)
+        if (temp < a[i])
+            temp = a[i];
+
+    return temp;
+}
+
+/* matrixMagic: Transpose a matrix, then fold up and down(上下对折) */
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
+            at[col-j-1][i] = a[i][j];
+}
+
+/* printHorizontalSymbol: print horizontal symbol */
+void printHorizontalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        printf("%12s:  ", *(wordsptr + i));
+        for (j = 0; j < col; j++)
+            printf("%-2c", matrix[i][j]);
+        printf("\n");
+    }
+}
+
+/* printVerticalSymbol: print vertical symbol */
+void printVerticalSymbol(char (*matrix)[MAX], char *wordsptr[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++)
+            printf("%-12c", matrix[i][j]);
+        printf("\n");
+    }
+
+    for (i = 0; i < col; i++)
+        printf("%-12s", *(wordsptr + i));
+
+    putchar('\n');
+}
+#include <stdio.h>
+
+#define MAX   100
+
+/* Write a program to print a histogram of the frequencies of different
+ * characters in its input */
+
+int ifRedundant(char *ic, int c);
+int readchars(char *ic, int *freq, int max);
+void printFreq(char *ic, int *freq, int count);
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col);
+void printHorizontalSymbol(char (*matrix)[MAX], char ic[], int row, int col);
+void printVerticalSymbol(char (*matrix)[MAX], char ic[], int row, int col);
+int getMaxElem(int a[], int length);
+
+int main()
+{
+    char ic[MAX] = "";    /* store input characters */
+    int freq[MAX];        /* store the frequencies of input characters */
+    int maxFreq;          /* store the max of the frequencies */
+    int count;            /* store the count of input characters */
+
+    if ((count = readchars(ic, freq, MAX)) == -1) {
+        printf("Too many characters!!\n");
+        return -1;
+    }
+
+    printFreq(ic, freq, count);
+
+    return 0;
+}
+
+/* readchars: store input characters and get frequencies of them */
+int readchars(char *ic, int *freq, int max)
+{
+    int c, i, j;    /* j for count of input characters */
+    int index;
+
+    i = 0;
+    j = 0;
+
+    for (i = 0, j = 0; (c = getchar()) != EOF && j < max; j++) {
+        if ((index = ifRedundant(ic, c)) == -1) {
+            ic[i] = c;
+            freq[i] = 1;
+            i++;
+        }
+        else 
+            freq[index]++;
+    }
+
+    if (j == max)
+        return -1;
+
+    return i;
+}
+
+/* printFreq: print the frequencies's horizontal and vertical histogram */
+void printFreq(char *ic, int *freq, int count)
+{
+    int i, j, max_frequency;
+    char horizontal_matrix[MAX][MAX] = {0};
+    char vertical_matrix[MAX][MAX] = {0};
+
+    max_frequency = getMaxElem(freq, count);
+
+    for (i = 0; i < count; i++)
+        for (j = 0; j < max_frequency; j++)
+            if (j < freq[i])
+                horizontal_matrix[i][j] = '|';
+            else 
+                horizontal_matrix[i][j] = ' ';
+
+    matrixMagic(vertical_matrix, horizontal_matrix, count, max_frequency);
+
+    /* horizontal histogram */
+    printf("\nhorizontal histogram:\n");
+    printHorizontalSymbol(horizontal_matrix, ic, count, max_frequency);
+
+    /* vertical histogram */
+    printf("\nvertical histogram:\n");
+    printVerticalSymbol(vertical_matrix, ic, max_frequency, count);
+}
+
+/* getMaxElem: find max element in array a */
+int getMaxElem(int a[], int length)
+{
+    int temp, i;
+
+    temp = a[0];
+
+    for (i = 1; i < length; i++)
+        if (temp < a[i])
+            temp = a[i];
+
+    return temp;
+}
+
+/* matrixMagic: Transpose a matrix, then fold up and down(上下对折) */
+void matrixMagic(char (*at)[MAX], char (*a)[MAX], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++)
+        for (j = 0; j < col; j++)
+            at[col-j-1][i] = a[i][j];
+}
+
+/* printHorizontalSymbol: print horizontal symbol */
+void printHorizontalSymbol(char (*matrix)[MAX], char ic[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        if (ic[i] == '\n')
+            printf("\\n:  ");
+        else if (ic[i] == '\t')
+            printf("\\t:  ");
+        else
+            printf("%2c:  ", ic[i]);
+
+        for (j = 0; j < col; j++)
+            printf("%-2c", matrix[i][j]);
+        printf("\n");
+    }
+}
+
+/* printVerticalSymbol: print vertical symbol */
+void printVerticalSymbol(char (*matrix)[MAX], char ic[], int row, int col)
+{
+    int i, j;
+
+    for (i = 0; i < row; i++) {
+        for (j = 0; j < col; j++)
+            printf("%-3c", matrix[i][j]);
+        printf("\n");
+    }
+
+    for (i = 0; i < col; i++) {
+        if (ic[i] == '\n')
+            printf("\\n ");
+        else if (ic[i] == '\t')
+            printf("\\t ");
+        else
+            printf("%-3c", ic[i]);
+    }
+
+    putchar('\n');
+}
+
+/* ifRedundant: determine if the character c is redundant */
+int ifRedundant(char *ic, int c)
+{
+    int i;
+
+    for (i = 0; ic[i] != '\0' && ic[i] != c; i++)
+        ;
+
+    if (ic[i] == c)
+        return i;
+
+    return -1;
+}
+#include <stdio.h>
+#define  MAXLINE  1000
+
+/* Exercise 1-21. Write a program "entab" that replaces strings of blanks
+ * by the mininum number of tabs and blanks to achieve the same spacing. 
+ * Use the same tab stops as for "detab". When either a tab or a single 
+ * blank would suffice to reach a tab stop, which should be given prefer-
+ * rence? */
+
+/* In this version, tab is given preferrence. */
+
+int mygetline(char s[], int lim);
+void entab(char t[], char s[]);
+int main()
+{
+    char line[MAXLINE];
+    char entabLine[MAXLINE];
+
+    while (mygetline(line, MAXLINE) > 0) {
+        entab(entabLine, line);
+        printf("%s", entabLine);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* entab: replace spaces in s with mininum tabs and spaces */
+void entab(char t[], char s[])
+{
+    int i, j;
+    int n, tn;    
+    int ts;    /* last subscription of tab before consecutive spaces in s */
+
+    tn = 0;
+    ts = -1;
+
+    for (i=0, j=0; t[j] = s[i]; i++, j++) {
+        if (s[i] == '\t')
+            ts = i;
+
+        if (s[i] == ' ') {
+            for (n = 0; s[i] == ' '; i++)
+                if ((i-ts)%8 == 0) {
+                    tn++;
+                    n = 0;
+                }
+                else
+                    n++;
+
+            //printf("tn: %d\tn: %d\n", tn, n);
+            while (tn--)
+                t[j++] = '\t';
+            while (n--)
+                t[j++] = ' ';
+            i--;
+            j--;
+        }
+    }
+}
+#include <stdio.h>
+
+/* copy input to output, replacing each tabs by \t
+ * each backspace by \b, each backslash by \\ */
+int main()
+{
+    int c;
+
+    while ((c = getchar()) != EOF) {
+        if (c == '\t')
+            printf("\\t");
+        else if (c == '\b')
+            printf("\\b");
+        else if (c == '\\')
+            printf("\\\\");
+        else
+            putchar(c);
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#define MAXLINE  10
+
+/* Exercise 1-16. Revise the main routine of the longest-line program so it will 
+ * correctly print the length of arbitrarily long input lines, and as much as 
+ * possible of the text */
+
+int mygetline(char line[], int maxline);
+void copy(char to[], char from[]);
+
+int main()
+{
+    int len;        /* current line length */
+    int max;        /* maximum length seen so far */
+    char line[MAXLINE];    /* current input line */
+    char longest[MAXLINE]; /* longest line saved here */
+
+    max = 0;
+
+    while ((len = mygetline(line, MAXLINE)) > 0)
+        if (len > max) {
+            max = len;
+            copy(longest, line);
+        }
+    if (max > 0)
+        printf("%d  %s", max, longest);    /* print read length of arbitrarily long input lines and text */
+
+    return 0;
+}
+
+/* mygetline: read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; (c = getchar())!=EOF && c!='\n'; ++i)
+        if (i < lim-1)
+            s[i] = c;
+
+    if (i >= lim-1) {    /* when length is larger than lim */
+        s[lim-1] = '\0';
+        i++;
+        return i;
+    }
+
+    if (c == '\n') {
+        s[i] = c;
+        ++i;
+    }
+    s[i] = '\0';
+
+    return i;
+}
+
+/* copy: copy 'from' into 'to'; assume to is big enough */
+void copy(char to[], char from[])
+{
+    while ((*to++ = *from++) != '\0')
+        ;
+}
+#include <stdio.h>
+
+/* prints its input one word per line */
+int main()
+{
+    int c;
+
+    while ((c = getchar()) != EOF) {
+        if (c != ' ' && c != '\n' && c != '\t') {
+            putchar(c);
+            while ((c = getchar()) != ' ' && c != '\n' && c != '\t') 
+                putchar(c);
+            putchar('\n');
+        }
+    }
+
+    return 0;
+}
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define MAXLINE  1000
+#define myalloc(i)  tmp[i] = '\n'; \
+                             tmp[i+1] = '\0'; \
+                             char *p = malloc(n+1);  \
+                             strcpy(p, tmp);  \
+                             t[k++] = p
+
+/* Exercise 1-22. Write a program to "fold" long input lines into two or more 
+ * shorter lines after the last non-blank character that occurs before the 
+ * n-th column of input. Make sure your program does sth intelligent with 
+ * very long lines, and if there are no blanks and tabs before the specified 
+ * column. */
+
+int foldstr(char *t[], char s[], int n);
+int mygetline(char s[], int lim);
+
+int main(int argc, char *argv[]) 
+{
+    int length;    /* foldline length */
+    int i, n;
+    char line[MAXLINE];
+    char *foldline[MAXLINE];
+
+    if (argc != 2) {
+        printf("Usage: %s [n]\n", argv[0]);
+        return -1;
+    }
+
+    n = (atoi(argv[1])) ? atoi(argv[1]) : 6;
+    while (mygetline(line, MAXLINE) > 0) {
+        length = foldstr(foldline, line, n);
+        for (i = 0; i < length; i++) {
+            printf("%s", foldline[i]);
+            free(foldline[i]);
+        }
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* foldstr:  fold long input lines into more shorter lines */
+int foldstr(char *t[], char s[], int n)
+{
+    char tmp[n+1];
+    int i, j, k;
+    int c;
+    int lbc;    /* last blank character subscription */
+
+    lbc = -1;
+    for (i=0, j=0, k=0; tmp[j] = s[i]; i++) {
+        if ((c=tmp[j])==' ' || c=='\t')
+            lbc = j;
+
+        if (j == n-1) {
+            if (lbc == -1) {    /* there are no blanks and tabs before the specified column */
+                myalloc(j);
+                i--;
+            }
+            else {
+                myalloc(lbc);
+                i = i - (j-lbc);
+            }
+            j = 0;
+            lbc = -1;
+        }
+        else
+            j++;
+    }
+
+    if (j > 0 && j <= n-1)
+        myalloc(j);
+
+    return k;
+}
+#include <stdio.h>
+#define  MAXLINE   1000
+
+/* Exercise 1-17. Write a program to print all input lines that 
+ * is longer than 80 characters */
+
+int mygetline(char s[], int lim);
+
+int main()
+{
+    int len;    /* current line length */
+    char line[MAXLINE];  /* current input line */
+
+    while ((len = mygetline(line, MAXLINE)) > 0)
+        if (len > 80)
+            printf("%4d  %s", len, line);
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+#include <stdio.h>
+
+int main()
+{
+    printf("The (int)value of EOF is %d\n", EOF);
+    //printf("The (char)value of EOF is %c\n", EOF);
+
+    return 0;
+}
+#include <stdio.h>
+#define MAXLINE   1000
+
+
+
+
+
+int sa = 0;    
+
+int mygetline(char s[], int lim);
+void removecomments(char t[], char s[]);
+int main() 
+{
+    char line[MAXLINE];
+    char rcline[MAXLINE];    
+
+    while (mygetline(line, MAXLINE) > 0) {
+        removecomments(rcline, line);
+        printf("%s", rcline);
+    }
+
+    return 0;
+}
+
+
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+
+void removecomments(char t[], char s[])
+{
+    int i, j;
+    int doubleQuote, singleQuote;
+
+    doubleQuote = singleQuote = 0;
+    for (i=0, j=0; t[j] = s[i]; i++, j++) {
+        if (t[j] == '"') {
+            doubleQuote++;
+            if (doubleQuote == 2)
+                doubleQuote = sa = 0;
+        }
+
+        if (t[j] == '\'') {
+            singleQuote++;
+            if (singleQuote == 2)
+                singleQuote = sa = 0;
+        }
+
+        if (doubleQuote!=1 && singleQuote!=1)     
+            if (t[j] == '/') {    
+                if (s[i+1] == '*') {
+                    sa = 1;
+                    int k = i;
+                    while (s[++k])
+                        if (s[k] == '*' && s[k+1] == '/') {
+                            sa = 0;
+                            i = k+1;
+                            j--;
+                            break;
+                        }
+                }
+
+                if (s[i+1] == '/') {
+                    t[j] = '\n';
+                    t[j+1] = '\0';
+                    break;
+                }
+            }
+            else if (sa == 1) {    
+                int k = i;
+                while (s[++k])
+                    if (s[k] == '*' && s[k+1] == '/')
+                        sa = 0;
+                    t[0] = '\n';
+                    t[1] = '\0';
+                    break;
+            }
+    }
+}
+#include <stdio.h>
+#define MAXLINE   1000
+
+/* Exercise 1-23. Write a program to remove all comments
+ * from a C program. Don't forget to handle quoted strings
+ * and character constants properly. C comments do not nest.*/
+
+int sa = 0;    /* slash astersk */
+
+int mygetline(char s[], int lim);
+void removecomments(char t[], char s[]);
+int main() 
+{
+    char line[MAXLINE];
+    char rcline[MAXLINE];    /* removed comments line */
+
+    while (mygetline(line, MAXLINE) > 0) {
+        removecomments(rcline, line);
+        printf("%s", rcline);
+    }
+
+    return 0;
+}
+
+/* mygetline:  read a line to s, return length */
+int mygetline(char s[], int lim)
+{
+    int c, i;
+
+    for (i = 0; i < lim-1 && (c = getchar()) != EOF && c != '\n'; i++)
+        s[i] = c;
+
+    if (c == '\n') {
+        s[i] = '\n';
+        i++;
+    }
+
+    s[i] = '\0';
+
+    return i;
+}
+
+/* removecomments: remove C comments in s */
+void removecomments(char t[], char s[])
+{
+    int i, j;
+    int doubleQuote, singleQuote;
+
+    doubleQuote = singleQuote = 0;
+    for (i=0, j=0; t[j] = s[i]; i++, j++) {
+        if (t[j] == '"') {
+            doubleQuote++;
+            if (doubleQuote == 2)
+                doubleQuote = sa = 0;
+        }
+
+        if (t[j] == '\'') {
+            singleQuote++;
+            if (singleQuote == 2)
+                singleQuote = sa = 0;
+        }
+
+        if (doubleQuote!=1 && singleQuote!=1)     
+            if (t[j] == '/') {    /* trailing comments */
+                if (s[i+1] == '*') {
+                    sa = 1;
+                    int k = i;
+                    while (s[++k])
+                        if (s[k] == '*' && s[k+1] == '/') {
+                            sa = 0;
+                            i = k+1;
+                            j--;
+                            break;
+                        }
+                }
+
+                if (s[i+1] == '/') {
+                    t[j] = '\n';
+                    t[j+1] = '\0';
+                    break;
+                }
+            }
+            else if (sa == 1) {    /* paragraph comments */
+                int k = i;
+                while (s[++k])
+                    if (s[k] == '*' && s[k+1] == '/')
+                        sa = 0;
+                    t[0] = '\n';
+                    t[1] = '\0';
+                    break;
+            }
+    }
 }

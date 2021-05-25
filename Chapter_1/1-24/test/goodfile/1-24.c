@@ -1,11 +1,14 @@
 #include <stdio.h>
 #define MAXLINE       1000
+#define PARENTHESES   0
+#define BRACKETS      1
+#define BRACES        2
+#define SINGLEQUOTE   3
+#define DOUBLEQUOTE   4
+#define ACOMMENT      5
 
 #define check(s)    if (count[i] != 0) \
                                     printf("unbalanced %s\n", s)
-
-enum syntax_check {PARENTHESES, BRACKETS, BRACES, SINGLEQUOTE, DOUBLEQUOTE, 
-    ACOMMENT, SCOMMENT};
 
 /* Exercise 1-24. Write a program to check a C program for 
  * rudimentary syntax error like unbalanced parentheses, 
@@ -13,9 +16,8 @@ enum syntax_check {PARENTHESES, BRACKETS, BRACES, SINGLEQUOTE, DOUBLEQUOTE,
  * single and double, escape sequences and comments. (
  * This program is hard if you do it in full generality)*/ 
 
-/* Test command: find ../../ -name '.c' -print | xargs /bin/cat >testfile && ./1-24 <testfile */
-
-/* TODO: 1 slash comment and double comment的嵌套判别 */
+/* TODO: 1 double slash comment
+ *       2 escape sequence */
 int mygetline(char s[], int lim);
 void countSymbol(int a[], char s[]);
 int main()
@@ -23,7 +25,7 @@ int main()
     char line[MAXLINE];
     int i;
     int count[10] = { 0 };    // 0 parentheses 1 brackets 2 braces 3 single quote 
-                              // 4 double quote 5 asterisk-comment 6 slash-comment
+                              // 4 double quote 5 asterisk-comment
     while (mygetline(line, MAXLINE) > 0)
         countSymbol(count, line);
 
@@ -106,44 +108,44 @@ void countSymbol(int a[], char s[])
     for (i = 0; c = s[i]; i++)
         switch (c) {
             case '(':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[PARENTHESES]++;
                 break;
 
             case ')':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[PARENTHESES]--;
                 break;
 
             case '[':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACKETS]++;
                 break;
 
             case ']':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACKETS]--;
                 break;
 
             case '{':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACES]++;
                 break;
 
             case '}':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[BRACES]--;
                 break;
 
             case '\'':
-                if (a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[DOUBLEQUOTE]!=1 && a[ACOMMENT]!=1)
                     a[SINGLEQUOTE]++;
                 if (a[SINGLEQUOTE] == 2)
                     a[SINGLEQUOTE] = 0;
                 break;
 
             case '"':
-                if (a[SINGLEQUOTE] != 1 && a[ACOMMENT]!=1 && a[SCOMMENT]!=1)
+                if (a[SINGLEQUOTE] != 1 && a[ACOMMENT]!=1)
                     a[DOUBLEQUOTE]++;
                 if (a[DOUBLEQUOTE] == 2)
                     a[DOUBLEQUOTE] = 0;
@@ -152,8 +154,6 @@ void countSymbol(int a[], char s[])
             case '/':
                 if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='*')
                     a[ACOMMENT]++;
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
-                    a[SCOMMENT]++;
                 break;
 
             case '*':
@@ -168,7 +168,4 @@ void countSymbol(int a[], char s[])
             default:
                 break;
         }
-
-    if (a[SCOMMENT])    /* clear slash-comment's count when the line has finished */
-        a[SCOMMENT] = 0;
 }
