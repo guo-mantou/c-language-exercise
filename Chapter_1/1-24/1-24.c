@@ -15,7 +15,6 @@ enum syntax_check {PARENTHESES, BRACKETS, BRACES, SINGLEQUOTE, DOUBLEQUOTE,
 
 /* Test command: find ../../ -name '.c' -print | xargs /bin/cat >testfile && ./1-24 <testfile */
 
-/* TODO: 1 slash comment and double comment的嵌套判别 */
 int mygetline(char s[], int lim);
 void countSymbol(int a[], char s[]);
 int main()
@@ -150,15 +149,21 @@ void countSymbol(int a[], char s[])
                 break;
 
             case '/':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='*')
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[SCOMMENT]!=1 && a[ACOMMENT]!=1 && s[i+1]=='*') {
                     a[ACOMMENT]++;
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
+                    i++;    /* skip '*' */
+                }
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[SCOMMENT]!=1 && a[ACOMMENT]!=1 && s[i+1]=='/') {
                     a[SCOMMENT]++;
+                    i++;    /* skip '/' */
+                }
                 break;
 
             case '*':
-                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && s[i+1]=='/')
+                if (a[SINGLEQUOTE]!=1 && a[DOUBLEQUOTE]!=1 && a[SCOMMENT]!=1 && s[i+1]=='/') {
                     a[ACOMMENT]--;
+                    i++;    /* skip '/' */
+                }
                 break;
 
             case '\\':  /* escape characters */
