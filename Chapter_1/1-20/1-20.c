@@ -53,8 +53,7 @@ void detab(char t[], char s[])
     sn = 0;
     for (i=0, j=0; t[j] = s[i]; i++, j++)
         if (s[i] == '\t') {
-            sn = 8 - (i-lts-1)%8;
-            //printf("sn: %d\n", sn);
+            sn = 8 - (i-lts-1)%8;     /* calculate the number of characters between two consecutive tabs */
             while (sn--)
                 t[j++] = ' ';
             j--;
