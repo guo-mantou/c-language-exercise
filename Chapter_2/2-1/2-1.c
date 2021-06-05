@@ -42,7 +42,6 @@
 #define PRINT_UNSIGNED_LONG(max, min)  PRINT_VALUE(ULONG, lu, max, min)
 #define PRINT_FLOAT(max, min)          PRINT_VALUE(FLOAT, f, max, min)
 #define PRINT_HEADER(header_1, header_2, header_3) PRINT_VALUE(header_1, s, header_2, header_3)
-/* TODO: float minimum value of standard is different from the calculate one, why? */
 
 /* Exercise 2-1. Write a program to determine the ranges of char, short, int,
  * and long variables, both signed and unsigned, by printing appropriate 
@@ -150,11 +149,6 @@ void print_dashes(int len)
     for (i = 0; i < len; i++)
         printf("-");
     printf("\n");
-}
-
-void print_header()
-{
-    printf("%-16s%50s%50s\n", HEADER_1, HEADER_2, HEADER_3);
 }
 
 /* calculate exponet of 2 */
