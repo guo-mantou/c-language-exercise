@@ -1,4 +1,0 @@
-1. a b -> a b
-2. a        (8 spaces)b -> a\t b
-3. a\t b -> a\t b
-4. a\ta       (7 spaces)b -> a\ta\tb

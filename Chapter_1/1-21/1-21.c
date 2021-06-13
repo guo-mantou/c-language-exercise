@@ -65,11 +65,15 @@ void entab(char t[], char s[])
                 else
                     n++;
 
-            //printf("tn: %d\tn: %d\n", tn, n);
-            while (tn--)
+            printf("tn: %d\tn: %d\n", tn, n);    /* for debug */
+            while (tn) {
                 t[j++] = '\t';
-            while (n--)
+                --tn;
+            }
+            while (n) {
                 t[j++] = ' ';
+                --n;
+            }
             i--;
             j--;
         }
