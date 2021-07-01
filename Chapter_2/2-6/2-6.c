@@ -31,11 +31,15 @@ int main(int argc, char *argv[])
  * n bits of y, leaving the other bits unchanged */
 int setbits(int x, int p, int n, int y)
 {
+    int z;
+
+    z = (x >> p+1) << p+1;   /* if x is 01100010, p is 5, \
+                                then z is 01000000 */
     y = getbits(y, n-1, n);
     y = (y << (p-n+1)) | ~(~0 << (p-n+1));
 
     x = x | (~(~0 << n) << (p-n+1));
-    return x & y;
+    return x & y | z;
 }
 
 /* getbits:  get n bits from position p */
