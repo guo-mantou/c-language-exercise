@@ -53,7 +53,7 @@ unsigned getbits(unsigned x, int p, int n)
 /* count_bit_len: return the bit length of x */
 unsigned count_bit_len(unsigned x)
 {
-    int i;
+    unsigned i;
 
     for (i = 0; x != 0; x >>= 1)
         i++;
