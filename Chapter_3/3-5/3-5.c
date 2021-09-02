@@ -48,26 +48,23 @@ int main()
 int itob(int n, char s[], int b)
 {
     int i, sign, largest;
+    int remainder;
 
     if (!(b==2 || b==8 || b==10 || b==16))
         return ITOB_BASE_ERROR;
 
-    if ((sign = n) < 0) {
-        if (-n == n) {
-            largest = LARGEST;
-            n = ~n;
-        }
-        else
-            n = -n;
-    }
-
+    sign = n;
     i = 0;
     do {
-        if (i==0 && largest==LARGEST)
-            s[i++] = (n%b+1) % b + '0';    /* TODO: only for decimal form */
-        else
-            s[i++] = n % b + '0';
-    } while ((n /= b) > 0);
+        if ((remainder = n%b) >= 0 && remainder <= 9)
+            s[i++] = remainder + '0';
+        else if (remainder >= 0xa && remainder <= 0xf)
+            s[i++] = (remainder-0xa) + 'a';
+        else if (remainder >= -9 && remainder < 0)
+            s[i++] = -(remainder) + '0';
+        else if (remainder >= -0xf && remainder <= -0xa)
+            s[i++] = -(remainder+0xa) + 'a';
+    } while ((n /= b) != 0);
 
     if (sign < 0)
         s[i++] = '-';
@@ -87,7 +84,7 @@ void prints(char s[], int b)
             break;
 
         case 8:
-            printf("s: o%s\n", s);
+            printf("s: 0%s\n", s);
             break;
 
         case 16:
