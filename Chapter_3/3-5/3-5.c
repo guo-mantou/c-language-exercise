@@ -7,11 +7,6 @@
  * into a base b character representation in the string s. In particular, 
  * 'itob(n,s,16)' formats n as a hexadecimal integer in s. */
 
-enum iflargest {
-    NORMAL,
-    LARGEST,
-};
-
 enum itob_error_code {
     ITOB_SUCCESS,
     ITOB_BASE_ERROR,
@@ -47,7 +42,7 @@ int main()
  * string s. */
 int itob(int n, char s[], int b)
 {
-    int i, sign, largest;
+    int i, sign;
     int remainder;
 
     if (!(b==2 || b==8 || b==10 || b==16))
@@ -63,7 +58,7 @@ int itob(int n, char s[], int b)
         else if (remainder >= -9 && remainder < 0)
             s[i++] = -(remainder) + '0';
         else if (remainder >= -0xf && remainder <= -0xa)
-            s[i++] = -(remainder+0xa) + 'a';
+            s[i++] = -(remainder+0xa) + 'a';    /* make remainder fall in range of 0 ~ 5, then plus 'a' */
     } while ((n /= b) != 0);
 
     if (sign < 0)

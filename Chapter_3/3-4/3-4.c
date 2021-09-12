@@ -2,8 +2,6 @@
 #include <string.h>
 
 #define MAXLEN    1000
-#define LARGEST   1
-#define NORMAL    0
 
 /* Exercise 3-4. In a two's complement number representation, our version of 
  * itoa does not handle the largest negative number, that is, the value of n equal 
@@ -38,24 +36,15 @@ int main()
 void itoa(int n, char s[])
 {
     int i, sign;
-    int largest;
+    int remainder;
 
-    largest = NORMAL;
-    if ((sign = n) < 0) {
-        if (-n == n) {    /* n = -(2)^(wordsize-1). */
-            largest = LARGEST;
-            n = ~n;       /* -(2)^(wordsize-1) -> (2)^(wordsize-1) - 1 */
-        }
-        else 
-            n = -n;
-    }
-
+    sign = n;
     i = 0;
     do {
-        if (i==0 && largest==LARGEST)
-            s[i++] = n % 10 + '0' + 1;
-        else
-            s[i++] = n % 10 + '0';
+        if ((remainder = n%10) >= 0 && remainder <= 9)
+            s[i++] = remainder + '0';
+        else if (remainder >= -9 && remainder < 0)
+            s[i++] = -remainder + '0';
     } while ((n /= 10) > 0);
 
     if (sign < 0)
