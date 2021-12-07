@@ -55,8 +55,6 @@ int main(void)
                 printf("\t%.8g\n", pop());
                 break;
 
-                /* FIXME: input 3 4 + 5 6 * p s p -> '\n' -> p Ctrl-d
-                 * print still 7, which should be updated to 30! */
             case 'p':    /* print top element of the stack */
                 printf("\n\ttop element of the stack: %.8g\n", top_elem);
                 break;
