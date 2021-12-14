@@ -83,13 +83,20 @@ int main(void)
                 tpush(cos(pop()));
                 break;
 
-                /* TODO: what is NaN and Inf? */
             case 'e':    /* exp() */
                 tpush(exp(pop()));
                 break;
 
-                /* TODO: complete pow() */
             case 'w':    /* pow() */
+                {
+                    double x, y;
+                    y = pop();
+                    x = pop();
+                    if (x == 0 && y < 0 ||
+                            x < 0 && y-(int)y != 0)
+                        printf("error:  pow(x,y) error\n");
+                    tpush(pow(x, y));
+                }
                 break;
 
             default:
