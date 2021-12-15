@@ -15,8 +15,10 @@ int main(void)
 {
     int type;
     double op2, top_elem;
+    double x, y, z;    /* declare variables x, y, z */
     char s[MAXOP];
 
+    x = y = z = 0.0;
     while ((type = getop(s)) != EOF) {
         switch (type) {
             case NUMBER:
@@ -94,10 +96,20 @@ int main(void)
                     y = pop();
                     x = pop();
                     if (x == 0 && y < 0 ||
-                            x < 0 && y-(int)y != 0)
+                            x < 0 && y-(int)y != 0)    /* verify if y is an integer */
                         printf("error:  pow(x,y) error\n");
                     tpush(pow(x, y));
                 }
+                break;
+
+                /* TODO: complete variable */
+            case 'x':    /* variable x */
+                break;
+
+            case 'y':    /* variable y */
+                break;
+
+            case 'z':    /* variable z */
                 break;
 
             default:
