@@ -10,6 +10,8 @@
  * twenty-six vriables with single-letter names.) Add a variable for the most
  * recently printed value. */
 
+void helpinfo();
+
 /* reverse Polish calculator */
 int main(void)
 {
@@ -58,6 +60,10 @@ int main(void)
                 printf("\t%.8g\n", pop());
                 break;
 
+            case 'h':    /* show help info */
+                helpinfo();
+                break;
+
             case 'p':    /* print top element of the stack */
                 printf("\n\ttop element of the stack: %.8g\n", top_elem);
                 break;
@@ -103,7 +109,15 @@ int main(void)
                 break;
 
                 /* TODO: complete variable */
+            case 'v':    /* show variables */
+                printf("\n\nvariables:\n");
+                printf("\tx:  %g\n", x);
+                printf("\ty:  %g\n", y);
+                printf("\tz:  %g\n", z);
+                break;
+
             case 'x':    /* variable x */
+                x = pop();
                 break;
 
             case 'y':    /* variable y */
@@ -118,4 +132,20 @@ int main(void)
         }
     }
     return 0;
+}
+
+/* helpinfo:  print help information */
+void helpinfo()
+{
+    printf("\n\n<============== Reverse Polish Calculator ============>\n\n");
+    printf("h:  print help infomation\n");
+    printf("p:  print top element of the stack\n");
+    printf("d:  duplicate top element\n");
+    printf("s:  swap the top two elements\n");
+    printf("i:  sin()\n");
+    printf("c:  cos()\n");
+    printf("e:  exp()\n");
+    printf("w:  pow()\n");
+    printf("v:  show variables\n");
+    printf("\n");
 }
