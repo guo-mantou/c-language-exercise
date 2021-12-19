@@ -5,7 +5,6 @@
 #include "calc.h"
 
 #define MAXOP    100 /* max size of operand or operator */
-#define tpush(x)    push(top_elem = (x))  /* make sure top_elem always right */
 
 /* Exercise 4-6. Add commands for handing variables. (It's easy to provide
  * twenty-six vriables with single-letter names.) Add a variable for the most
@@ -17,7 +16,7 @@ void helpinfo();
 int main(void)
 {
     int type;
-    double op2, top_elem;
+    double op2;
     double x, y, z;    /* declare variables x, y, z */
     double r;    /* most recently printed value */
     char s[MAXOP];
@@ -29,26 +28,26 @@ int main(void)
     while ((type = getop(s)) != EOF) {
         switch (type) {
             case NUMBER:
-                tpush(atof(s));
+                push(atof(s));
                 break;
 
             case '+':
-                tpush(pop() + pop());
+                push(pop() + pop());
                 break;
 
             case '*':
-                tpush(pop() * pop());
+                push(pop() * pop());
                 break;
 
             case '-':
                 op2 = pop();
-                tpush(pop() - op2);
+                push(pop() - op2);
                 break;
 
             case '/':
                 op2 = pop();
                 if (op2 != 0.0)
-                    tpush(pop() / op2);
+                    push(pop() / op2);
                 else
                     printf("error: zero divisor\n");
                 break;
@@ -56,7 +55,7 @@ int main(void)
             case '%':
                 op2 = pop();
                 if (op2 != 0.0)
-                    tpush((int)pop() % (int)op2);
+                    push((int)pop() % (int)op2);
                 else
                     printf("error: zero divisor\n");
                 break;
@@ -71,35 +70,35 @@ int main(void)
                 break;
 
             case 'p':    /* print top element of the stack */
-                printf("\n\ttop element of the stack: %.8g\n", top_elem);
+                if (get_top_element())
+                    printf("\n\ttop element of the stack: %.8g\n", get_top_element());
                 break;
 
             case 'd':    /* duplicate top element */
-                tpush(top_elem);
-                printf("\n\ttop element has been duplicated\n");
+                if (duplicate_top_elem())
+                    printf("\n\ttop element has been duplicated\n");
                 break;
 
             case 's':    /* swap the top two elements */
-                {
-                    double elem1, elem2;
-                    elem1 = pop();
-                    elem2 = pop();
-                    tpush(elem1);
-                    tpush(elem2);
+                if (swap_top_elem())
                     printf("\n\tthe top two elements have been swapped\n");
-                }
+                break;
+
+            case 'c':    /* clear the stack */
+                clear_stack();
+                printf("\n\tthe stack is clear\n");
                 break;
 
             case 'i':    /* sin() */
-                tpush(sin(pop()));
+                push(sin(pop()));
                 break;
 
-            case 'c':    /* cos() */
-                tpush(cos(pop()));
+            case 'o':    /* cos() */
+                push(cos(pop()));
                 break;
 
             case 'e':    /* exp() */
-                tpush(exp(pop()));
+                push(exp(pop()));
                 break;
 
             case 'w':    /* pow() */
@@ -110,7 +109,7 @@ int main(void)
                     if (x == 0 && y < 0 ||
                             x < 0 && y-(int)y != 0)    /* verify if y is an integer */
                         printf("error:  pow(x,y) error\n");
-                    tpush(pow(x, y));
+                    push(pow(x, y));
                 }
                 break;
 
@@ -138,7 +137,7 @@ int main(void)
                     printf("\n\tx:  %g\n", x);
                     assign = false;
                 } else if (arithmetic) {
-                    tpush(x);
+                    push(x);
                     arithmetic = false;
                 }
                 break;
@@ -149,7 +148,7 @@ int main(void)
                     printf("\n\ty:  %g\n", y);
                     assign = false;
                 } else if (arithmetic) {
-                    tpush(y);
+                    push(y);
                     arithmetic = false;
                 }
                 break;
@@ -160,7 +159,7 @@ int main(void)
                     printf("\n\tz:  %g\n", z);
                     assign = false;
                 } else if (arithmetic) {
-                    tpush(z);
+                    push(z);
                     arithmetic = false;
                 }
                 break;
@@ -169,7 +168,7 @@ int main(void)
                 if (assign)
                     printf("error: can't not assign the most recently printed variables\n");
                 else if (arithmetic) {
-                    tpush(r);
+                    push(r);
                     arithmetic = false;
                 }
                 break;
@@ -190,8 +189,9 @@ void helpinfo()
     printf("p:  print top element of the stack\n");
     printf("d:  duplicate top element\n");
     printf("s:  swap the top two elements\n");
+    printf("c:  clear stack\n");
     printf("i:  sin()\n");
-    printf("c:  cos()\n");
+    printf("o:  cos()\n");
     printf("e:  exp()\n");
     printf("w:  pow()\n");
     printf("v:  show all variables\n");
