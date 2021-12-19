@@ -3,7 +3,6 @@
 #include "calc.h"
 
 #define MAXOP    100 /* max size of operand or operator */
-#define tpush(x)    push(top_elem = (x))  /* make sure top_elem always right */
 
 /* Exercise 4-4. Add commands to print the top element of the stack without pop-
  * ping, to duplicate it, and to swap the top two elements. Add a command to
@@ -13,32 +12,32 @@
 int main(void)
 {
     int type;
-    double op2, top_elem;
+    double op2;
     char s[MAXOP];
 
     while ((type = getop(s)) != EOF) {
         switch (type) {
             case NUMBER:
-                tpush(atof(s));
+                push(atof(s));
                 break;
 
             case '+':
-                tpush(pop() + pop());
+                push(pop() + pop());
                 break;
 
             case '*':
-                tpush(pop() * pop());
+                push(pop() * pop());
                 break;
 
             case '-':
                 op2 = pop();
-                tpush(pop() - op2);
+                push(pop() - op2);
                 break;
 
             case '/':
                 op2 = pop();
                 if (op2 != 0.0)
-                    tpush(pop() / op2);
+                    push(pop() / op2);
                 else
                     printf("error: zero divisor\n");
                 break;
@@ -46,7 +45,7 @@ int main(void)
             case '%':
                 op2 = pop();
                 if (op2 != 0.0)
-                    tpush((int)pop() % (int)op2);
+                    push((int)pop() % (int)op2);
                 else
                     printf("error: zero divisor\n");
                 break;
