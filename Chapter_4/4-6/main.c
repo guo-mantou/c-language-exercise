@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>  /* for atof() */
+#include <stdbool.h>
 #include <math.h>
 #include "calc.h"
 
@@ -19,7 +20,9 @@ int main(void)
     double op2, top_elem;
     double x, y, z;    /* declare variables x, y, z */
     char s[MAXOP];
+    bool assign, arithmetic;
 
+    assign = arithmetic = false;
     x = y = z = 0.0;
     while ((type = getop(s)) != EOF) {
         switch (type) {
@@ -116,14 +119,45 @@ int main(void)
                 printf("\tz:  %g\n", z);
                 break;
 
+            case '=':    /* for assignment of variables */
+                assign = true;
+                break;
+
+            case '&':    /* for arithmetic operation of variables */
+                arithmetic = true;
+                break;
+
             case 'x':    /* variable x */
-                x = pop();
+                if (assign) {
+                    x = pop();
+                    printf("\n\tx:  %g\n", x);
+                    assign = false;
+                } else if (arithmetic) {
+                    tpush(x);
+                    arithmetic = false;
+                }
                 break;
 
             case 'y':    /* variable y */
+                if (assign) {
+                    y = pop();
+                    printf("\n\ty:  %g\n", y);
+                    assign = false;
+                } else if (arithmetic) {
+                    tpush(y);
+                    arithmetic = false;
+                }
                 break;
 
             case 'z':    /* variable z */
+                if (assign) {
+                    z = pop();
+                    printf("\n\tz:  %g\n", z);
+                    assign = false;
+                } else if (arithmetic) {
+                    tpush(z);
+                    arithmetic = false;
+                }
                 break;
 
             default:
