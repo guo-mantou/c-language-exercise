@@ -56,23 +56,23 @@ int main(void)
                 break;
 
             case 'p':    /* print top element of the stack */
-                printf("\n\ttop element of the stack: %.8g\n", top_elem);
+                if (get_top_element())
+                    printf("\n\ttop element of the stack: %.8g\n", get_top_element());
                 break;
 
             case 'd':    /* duplicate top element */
-                tpush(top_elem);
-                printf("\n\ttop element has been duplicated\n");
+                if (duplicate_top_elem())
+                    printf("\n\ttop element has been duplicated\n");
                 break;
 
             case 's':    /* swap the top two elements */
-                {
-                    double elem1, elem2;
-                    elem1 = pop();
-                    elem2 = pop();
-                    tpush(elem1);
-                    tpush(elem2);
+                if (swap_top_elem())
                     printf("\n\tthe top two elements have been swapped\n");
-                }
+                break;
+
+            case 'c':    /* clear the stack */
+                clear_stack();
+                printf("\n\tthe stack is clear\n");
                 break;
 
             default:
