@@ -19,11 +19,13 @@ int main(void)
     int type;
     double op2, top_elem;
     double x, y, z;    /* declare variables x, y, z */
+    double r;    /* most recently printed value */
     char s[MAXOP];
     bool assign, arithmetic;
 
     assign = arithmetic = false;
     x = y = z = 0.0;
+    r = 0.0;
     while ((type = getop(s)) != EOF) {
         switch (type) {
             case NUMBER:
@@ -60,7 +62,8 @@ int main(void)
                 break;
 
             case '\n':
-                printf("\t%.8g\n", pop());
+                r = pop();
+                printf("\t%.8g\n", r);
                 break;
 
             case 'h':    /* show help info */
@@ -113,10 +116,12 @@ int main(void)
 
                 /* TODO: complete variable */
             case 'v':    /* show variables */
-                printf("\n\nvariables:\n");
+                printf("\n\nnormal variables:\n");
                 printf("\tx:  %g\n", x);
                 printf("\ty:  %g\n", y);
                 printf("\tz:  %g\n", z);
+                printf("\nmost recently printed variables:\n");
+                printf("\tr:  %g\n", r);
                 break;
 
             case '=':    /* for assignment of variables */
@@ -160,6 +165,15 @@ int main(void)
                 }
                 break;
 
+            case 'r':    /* for most recently printed variables */
+                if (assign)
+                    printf("error: can't not assign the most recently printed variables\n");
+                else if (arithmetic) {
+                    tpush(r);
+                    arithmetic = false;
+                }
+                break;
+
             default:
                 printf("error: unknown command %s\n", s);
                 break;
@@ -180,6 +194,8 @@ void helpinfo()
     printf("c:  cos()\n");
     printf("e:  exp()\n");
     printf("w:  pow()\n");
-    printf("v:  show variables\n");
+    printf("v:  show all variables\n");
+    printf("=:  assign variables, e.g. 2 3 + = x <=> x = 5\n");
+    printf("&:  reference to variables' value, e.g. &x &y + <=> x + y\n");
     printf("\n");
 }
