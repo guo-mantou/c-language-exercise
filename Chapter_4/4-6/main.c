@@ -113,7 +113,6 @@ int main(void)
                 }
                 break;
 
-                /* TODO: complete variable */
             case 'v':    /* show variables */
                 printf("\n\nnormal variables:\n");
                 printf("\tx:  %g\n", x);
