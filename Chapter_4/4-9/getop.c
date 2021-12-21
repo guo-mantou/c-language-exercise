@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include <ctype.h>
+#include "calc.h"
+
+/* getop:  get next character or numeric operand */
+int getop(char s[])
+{
+    int i, c;
+
+    while ((s[0] = c = getch()) == ' ' || c == '\t')
+        ;
+    s[1] = '\0';
+    if (!isdigit(c) && c != '.' && c != '+' && c != '-')
+        return c;      /* not a number */
+    if (c == '+' || c == '-') {
+        if (!isdigit(s[1] = c = getch())) {
+            ungetch(c);
+            s[1] = '\0';
+            return s[0];
+        } else
+            i = 1;
+    } else
+        i = 0;
+    if (isdigit(c))    /* collect integer part */
+        while (isdigit(s[++i] = c = getch()))
+            ;
+    if (c == '.')      /* collect fraction part */
+        while (isdigit(s[++i] = c = getch()))
+            ;
+    s[i] = '\0';
+    if (c != EOF)
+        ungetch(c);
+    show_buf();
+    return NUMBER;
+}
