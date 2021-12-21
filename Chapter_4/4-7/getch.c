@@ -22,11 +22,11 @@ void ungetch(int c)
 
 /* ungets:  push back an entire string onto the input, 
  * just use ungetch() */
-void ungets(char *s)
+void ungets(char s[])
 {
-    while (*s++)
+    int i;
+    for (i = 0; s[i]; i++)
         ;
-    s -= 2;
-    while (*s)
-        ungetch(*s--);
+    for (i -= 1; i >= 0; --i)
+        ungetch(s[i]);
 }
