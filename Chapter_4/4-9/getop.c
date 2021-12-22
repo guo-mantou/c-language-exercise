@@ -10,7 +10,8 @@ int getop(char s[])
     while ((s[0] = c = getch()) == ' ' || c == '\t')
         ;
     s[1] = '\0';
-    if (!isdigit(c) && c != '.' && c != '+' && c != '-')
+    if (!isdigit(c) && c != '.' && c != '+'
+            && c != '-' && c != EOF)
         return c;      /* not a number */
     if (c == '+' || c == '-') {
         if (!isdigit(s[1] = c = getch())) {
@@ -28,8 +29,11 @@ int getop(char s[])
         while (isdigit(s[++i] = c = getch()))
             ;
     s[i] = '\0';
-    if (c != EOF)
-        ungetch(c);
+    ungetch(c);
     show_buf();
+    if (c == EOF) {
+        printf("Got EOF in getop()\n");
+        return c;
+    }
     return NUMBER;
 }
