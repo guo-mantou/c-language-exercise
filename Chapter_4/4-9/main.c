@@ -188,6 +188,10 @@ int main(void)
                 show_buf();
                 break;
 
+            case 'f':    /* indicator of EOF */
+                printf("main:  Got EOF\n");
+                break;
+
             default:
                 printf("\n\terror: unknown command %s\n", s);
                 break;

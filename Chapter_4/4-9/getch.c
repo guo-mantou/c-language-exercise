@@ -8,7 +8,20 @@ int bufp = 0;         /* next free position in buf */
 /* getch:  get a (possibly pushed-back) character */
 int getch(void)
 {
-    return (bufp > 0) ? buf[--bufp] : getchar();
+    int c;
+    if (bufp > 0) {
+        c = buf[--bufp];
+        if (c == EOF)
+            printf("getch:  got EOF\n");
+        return buf[--bufp];
+    } else {
+        c = getchar();
+        printf("%c\n", c);
+        if (c == EOF)
+            printf("getch:  got EOF\n");
+        return c;
+    }
+    //return (bufp > 0) ? buf[--bufp] : getchar();
 }
 
 /* ungetch:  push character back on input */
@@ -16,8 +29,11 @@ void ungetch(int c)
 {
     if (bufp >= BUFSIZE)
         printf("ungetch: too many characters\n");
-    else
+    else {
+        if (c == EOF)
+            printf("ungetch:  Got EOF\n");
         buf[bufp++] = c;
+    }
 }
 
 /* ungets:  push back an entire string onto the input, 
