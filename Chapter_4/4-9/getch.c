@@ -13,12 +13,12 @@ int getch(void)
         c = buf[--bufp];
         if (c == EOF)
             printf("getch:  got EOF\n");
-        return buf[--bufp];
+        return c;
     } else {
         c = getchar();
         printf("%c\n", c);
         if (c == EOF)
-            printf("getch:  got EOF\n");
+            printf("getchar:  got EOF\n");
         return c;
     }
     //return (bufp > 0) ? buf[--bufp] : getchar();
@@ -33,6 +33,7 @@ void ungetch(int c)
         if (c == EOF)
             printf("ungetch:  Got EOF\n");
         buf[bufp++] = c;
+        printf("ungetch:  %d\n", buf[0]);
     }
 }
 

@@ -29,13 +29,8 @@ int getop(char s[])
         while (isdigit(s[++i] = c = getch()))
             ;
     s[i] = '\0';
-    if (c == EOF) {
+    if (c == EOF)
         printf("getop:  Got EOF\n");
-        ungetch(c);
-        return 'f';
-    } else if (c == '\n') {
-        printf("getop:  Got newline\n");
-    }
     ungetch(c);
     return NUMBER;
 }

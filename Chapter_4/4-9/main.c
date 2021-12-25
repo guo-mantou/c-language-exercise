@@ -28,6 +28,7 @@ int main(void)
     while ((type = getop(s)) != EOF) {
         switch (type) {
             case NUMBER:
+                printf("push: %s\n", s);
                 push(atof(s));
                 break;
 
@@ -188,11 +189,8 @@ int main(void)
                 show_buf();
                 break;
 
-            case 'f':    /* indicator of EOF */
-                printf("main:  Got EOF\n");
-                break;
-
             default:
+                printf("main:  default got %d\n", type);
                 printf("\n\terror: unknown command %s\n", s);
                 break;
         }
