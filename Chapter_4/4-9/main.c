@@ -28,7 +28,6 @@ int main(void)
     while ((type = getop(s)) != EOF) {
         switch (type) {
             case NUMBER:
-                printf("push: %s\n", s);
                 push(atof(s));
                 break;
 
@@ -185,12 +184,7 @@ int main(void)
                 }
                 break;
 
-            case 'b':    /* show all elements of buf[] */
-                show_buf();
-                break;
-
             default:
-                printf("main:  default got %d\n", type);
                 printf("\n\terror: unknown command %s\n", s);
                 break;
         }
@@ -220,6 +214,5 @@ void helpinfo()
     printf("=:  assign variables, e.g. 2 3 + = x <=> x = 5\n");
     printf("&:  reference to variables' value, e.g. &x &y + <=> x + y\n");
     printf("t:  test ungets()\n");
-    printf("b:  show all elements of buf[]\n");
     printf("\n");
 }
