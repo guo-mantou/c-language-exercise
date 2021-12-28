@@ -2,22 +2,28 @@
 #include "calc.h"
 #define BUFSIZE  100
 
-char buf[BUFSIZE];    /* buffer for ungetch */
-int bufp = 0;         /* next free position in buf */
+char buf = 0;    /* buffer for one character pushed-back */
 
 /* getch:  get a (possibly pushed-back) character */
 int getch(void)
 {
-    return (bufp > 0) ? buf[--bufp] : getchar();
+    int ret;
+
+    if (buf != 0) {
+        ret = buf;
+        buf = 0;
+        return ret;
+    } else
+        return getchar();
 }
 
 /* ungetch:  push character back on input */
 void ungetch(int c)
 {
-    if (bufp >= BUFSIZE)
+    if (buf != 0)
         printf("ungetch: too many characters\n");
     else
-        buf[bufp++] = c;
+        buf = c;
 }
 
 /* ungets:  push back an entire string onto the input, 
