@@ -6,9 +6,9 @@
 
 #define MAXOP    100 /* max size of operand or operator */
 
-/* Exercise 4-9. Our getch and ungetch do not handle a pushed-back EOF
- * correctly. Decide what their properties ought to be if an EOF is pushed back,
- * then implement your design. */
+/* Exercise 4-10. An alternate organization uses "getline" to read an entire input
+ * line; this makes "getch" and "ungetch" unnecessary. Revise the calculator to use
+ * this approach. */
 
 void helpinfo();
 
