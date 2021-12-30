@@ -3,11 +3,11 @@
 #include "calc.h"
 #define BUFSIZE  100
 
-static char buf[BUFSIZE];    /* buffer for ungetch */
-static int bufp = 0;         /* next free position in buf */
+char buf[BUFSIZE];    /* buffer for ungetch */
+int bufp = 0;         /* next free position in buf */
 
 /* mygetline:  read an entire input line from standard input, return length */
-static int mygetline(char s[], int max)
+int mygetline(char s[], int max)
 {
     int c, i;
 
@@ -22,7 +22,7 @@ static int mygetline(char s[], int max)
 }
 
 /* reverse:  reverse string s */
-static void reverse(char s[], int len)
+void reverse(char s[], int len)
 {
     int i, c;
 
